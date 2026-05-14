@@ -16,6 +16,7 @@ public class Target : MonoBehaviour
 
     void Update()
     {
-        transform.Translate(Vector2.right * speed * Time.deltaTime);
+        transform.Translate(moveDirection * speed * Time.deltaTime);
     }
+  
 }
