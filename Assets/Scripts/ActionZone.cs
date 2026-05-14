@@ -16,6 +16,7 @@ public class ActionZone : MonoBehaviour
         {
             target.inActionZone = false;
 
+            // Go 目標離開 GoArea 還沒被處理 = Miss
             if (target.type == TargetType.Go && !target.handled)
             {
                 GameManager.Instance.Miss(target);

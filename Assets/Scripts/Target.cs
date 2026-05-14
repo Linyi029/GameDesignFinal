@@ -12,6 +12,7 @@ public class Target : MonoBehaviour
     public float speed = 3f;
     public bool inActionZone = false;
     public bool handled = false;
+    public Vector2 moveDirection;
 
     void Update()
     {
