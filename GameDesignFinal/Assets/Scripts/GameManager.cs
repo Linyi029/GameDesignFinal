@@ -1,15 +1,9 @@
 using UnityEngine;
-
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
     private Target currentTarget;
-
-    private int score = 0;
     
-
-
-
     void Awake()
     {
         Instance = this;
@@ -77,20 +71,4 @@ public class GameManager : MonoBehaviour
         Debug.Log("Miss");
         Destroy(target.gameObject);
     }
-
-
-
-
-    // Score or 關卡 管理
-    public void AddScore(int amount)
-    {
-        score += amount;
-    }
-    public void MinusScore(int amount)
-    {
-        score -= amount;
-    }
-
-
-
 }
