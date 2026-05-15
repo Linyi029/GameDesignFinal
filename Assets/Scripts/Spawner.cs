@@ -79,8 +79,6 @@ public class Spawner : MonoBehaviour
         }
 
 
-
-
         currentTarget = Instantiate(
             // targetPrefab,
             // spawnPos,
@@ -91,11 +89,8 @@ public class Spawner : MonoBehaviour
         );
 
 
-
-
         // 設定移動方向
-        Target target =
-            currentTarget.GetComponent<Target>();
+        Target target = currentTarget.GetComponent<Target>();
 
         target.moveDirection = moveDir;
     }

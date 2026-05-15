@@ -10,7 +10,6 @@ public class Target : MonoBehaviour
 {
     public TargetType type;
     public float speed = 3f;
-    public bool inActionZone = false;
     public bool handled = false;
     public Vector2 moveDirection;
 
@@ -18,5 +17,10 @@ public class Target : MonoBehaviour
     {
         transform.Translate(moveDirection * speed * Time.deltaTime);
     }
+
+    // private void OnMouseDown()
+    // {
+    //     GameManager.Instance.CheckTarget(this);
+    // }
   
 }

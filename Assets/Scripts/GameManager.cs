@@ -3,92 +3,101 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
-    private Target currentTarget;
+    public Transform ActionZone;
+    public float radiusX = 1.5f;
+    public float radiusY = 5f;
 
-    private int score = 0;
-
+    [SerializeField] private int score = 0;
+    public int threshold = 200;
 
     void Awake()
     {
         Instance = this;
     }
+
     void Update()
     {
         if (Input.GetMouseButtonDown(0))
         {
-            var mainCamera = Camera.main;
-            if (mainCamera == null) return;
+            CheckMouseClick();
+        }
+    }
 
-            Vector3 mouseWorld = mainCamera.ScreenToWorldPoint(Input.mousePosition);
-            Vector2 mousePoint = new Vector2(mouseWorld.x, mouseWorld.y);
-            Collider2D clickedCollider = Physics2D.OverlapPoint(mousePoint);
+    void CheckMouseClick()
+    {
+        Camera mainCamera = Camera.main;
+        if (mainCamera == null) return;
 
-            if (clickedCollider != null && clickedCollider.TryGetComponent(out Target target))
+        Vector3 mouseWorld = mainCamera.ScreenToWorldPoint(Input.mousePosition);
+        Vector2 mousePoint = new Vector2(mouseWorld.x, mouseWorld.y);
+
+        Collider2D clickedCollider = Physics2D.OverlapPoint(mousePoint);
+
+        if (clickedCollider != null &&
+            clickedCollider.TryGetComponent(out Target target))
+        {
+            CheckTarget(target);
+        }
+    }
+
+    public void CheckTarget(Target target)
+    {
+        if (target == null) return;
+        if (target.handled) return;
+
+        if (target.type == TargetType.Go)
+        {
+            if (IsInsideActionZone(target))
             {
-                currentTarget = target;
-                CheckInput();
+                Success(target);
+            }
+            else
+            {
+                Miss(target);
             }
         }
-    }
-
-    public void SetCurrentTarget(Target target)
-    {
-        currentTarget = target;
-    }
-
-    void CheckInput()
-    {
-        if (currentTarget == null) return;
-        if (currentTarget.handled) return;
-
-        if (currentTarget.type == TargetType.Go && currentTarget.inActionZone)
+        else if (target.type == TargetType.NoGo)
         {
-            Success(currentTarget);
+            Punish(target);
         }
-        else if (currentTarget.type == TargetType.NoGo)
+
+        bool IsInsideActionZone(Target target)
         {
-            Punish(currentTarget);
+            if (ActionZone == null) return false;
+
+            Vector2 p =target.transform.position - ActionZone.position;
+
+            return (p.x * p.x) / (radiusX * radiusX) + (p.y * p.y) / (radiusY * radiusY)
+            <= 1f;
         }
-        else
-        {
-            Miss(currentTarget);
-        }
+
     }
 
     public void Success(Target target)
     {
         target.handled = true;
-        Debug.Log("Success");
+        AddScore(100);
+        Debug.Log("Success, Score = " + score);
         Destroy(target.gameObject);
     }
 
     public void Punish(Target target)
     {
         target.handled = true;
-        Debug.Log("Punish");
+        AddScore(-100);
+        Debug.Log("Punish, Score = " + score);
         Destroy(target.gameObject);
     }
 
     public void Miss(Target target)
     {
         target.handled = true;
-        Debug.Log("Miss");
+        AddScore(-50);
+        Debug.Log("Miss, Score = " + score);
         Destroy(target.gameObject);
     }
-
-
-
-
-    // Score or 關卡 管理
     public void AddScore(int amount)
     {
         score += amount;
     }
-    public void MinusScore(int amount)
-    {
-        score -= amount;
-    }
-
-
-
 }
