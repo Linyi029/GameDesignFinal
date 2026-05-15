@@ -13,9 +13,29 @@ public class Target : MonoBehaviour
     public bool handled = false;
     public Vector2 moveDirection;
 
+    public float destroyXLimit = 11f;
+
     void Update()
     {
         transform.Translate(moveDirection * speed * Time.deltaTime);
+
+
+        if (!handled && Mathf.Abs(transform.position.x) > destroyXLimit)
+        {
+            if (type == TargetType.Go)
+            {
+                GameManager.Instance.Miss(this);
+            }
+            else
+            {
+                Destroy(gameObject);
+            }
+
+            if (type == TargetType.NoGo)
+            {
+                Destroy(gameObject);
+            }
+        }
     }
 
     // private void OnMouseDown()
