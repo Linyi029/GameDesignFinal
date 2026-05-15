@@ -6,8 +6,6 @@ public class GameManager : MonoBehaviour
     private Target currentTarget;
 
     private int score = 0;
-    
-
 
 
     void Awake()

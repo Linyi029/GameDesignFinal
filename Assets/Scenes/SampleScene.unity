@@ -370,7 +370,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7c064835a2be34c7e9ac071a4ed5b086, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetPrefab: {fileID: 7985165492864188683, guid: 3974480ca87f04d0b8372b4425461af1, type: 3}
+  goPrefab: {fileID: 7985165492864188683, guid: 3974480ca87f04d0b8372b4425461af1, type: 3}
+  noGoPrefab: {fileID: 7985165492864188683, guid: 8409d0e1796e546f192459d6a5f07d27, type: 3}
 --- !u!4 &622967260
 Transform:
   m_ObjectHideFlags: 0

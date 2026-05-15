@@ -3,7 +3,9 @@ using System.Collections;
 
 public class Spawner : MonoBehaviour
 {
-    public GameObject targetPrefab;
+    //public GameObject targetPrefab;
+    public GameObject goPrefab;
+    public GameObject noGoPrefab;
 
     private GameObject currentTarget;
 
@@ -61,11 +63,35 @@ public class Spawner : MonoBehaviour
             moveDir = Vector2.left;
         }
 
+        GameObject prefabToSpawn;
+
+        bool spawnNoGo =
+        Random.value < 0.3f;
+
+
+        if (spawnNoGo)
+        {
+            prefabToSpawn = noGoPrefab;
+        }
+        else
+        {
+            prefabToSpawn = goPrefab;
+        }
+
+
+
+
         currentTarget = Instantiate(
-            targetPrefab,
+            // targetPrefab,
+            // spawnPos,
+            // Quaternion.identity
+            prefabToSpawn,
             spawnPos,
             Quaternion.identity
         );
+
+
+
 
         // 設定移動方向
         Target target =
