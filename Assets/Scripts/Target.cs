@@ -8,11 +8,18 @@ public enum TargetType
 
 public class Target : MonoBehaviour
 {
+    [Tooltip("這顆 target 的類型：Go 需要點擊，No-Go 需要避開。")]
     public TargetType type;
+
+    [Tooltip("移動速度。Spawner 生成 target 時可能會覆蓋這個數值。")]
     public float speed = 3f;
+
     public bool handled = false;
+
+    [Tooltip("target 在世界座標中的移動方向。")]
     public Vector2 moveDirection;
 
+    [Tooltip("target 超過這個 X 距離後，會被判定為 miss 或 correct rejection。")]
     public float destroyXLimit = 11f;
 
     void Update()
@@ -28,19 +35,11 @@ public class Target : MonoBehaviour
             }
             else
             {
-                Destroy(gameObject);
-            }
-
-            if (type == TargetType.NoGo)
-            {
-                Destroy(gameObject);
+                GameManager.Instance.CorrectRej(this); //正確拒絕
             }
         }
     }
 
-    // private void OnMouseDown()
-    // {
-    //     GameManager.Instance.CheckTarget(this);
-    // }
+
   
 }
