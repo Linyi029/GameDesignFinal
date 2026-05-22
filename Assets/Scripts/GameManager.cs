@@ -197,6 +197,7 @@ public class GameManager : MonoBehaviour
             Time.timeScale = 0f;
         }
     }
+    //更改通關條件：'生命值條件'，注意GO/NOGO OBJ情況
 
 
 

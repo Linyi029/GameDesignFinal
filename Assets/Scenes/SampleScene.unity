@@ -372,6 +372,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   goPrefab: {fileID: 7985165492864188683, guid: 3974480ca87f04d0b8372b4425461af1, type: 3}
   noGoPrefab: {fileID: 7985165492864188683, guid: 8409d0e1796e546f192459d6a5f07d27, type: 3}
+  noGoChance: 0.3
+  minSpawnWait: 0.5
+  maxSpawnWait: 2
+  spawnMultipleTargets: 0
+  minTargetsPerWave: 2
+  maxTargetsPerWave: 4
+  sameWaveLaneSpacing: 0.75
+  laneJitter: 0.6
+  baseTargetSpeed: 3
+  speedMultiplier: 1
 --- !u!4 &622967260
 Transform:
   m_ObjectHideFlags: 0
@@ -596,6 +606,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 289b13d1f08124ea08f1fe24807165c6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  spawner: {fileID: 0}
+  ActionZone: {fileID: 990931192}
+  radiusX: 1.5
+  radiusY: 5
+  score: 0
+  maxClicks: 5
+  threshold: 0.5
+  speedIncreaseMultiplier: 1.25
+  Accuracy: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
