@@ -19,17 +19,19 @@ public class GameManager : MonoBehaviour
 
     [SerializeField] private int score = 0;
 
-    [Tooltip("每一輪可以點擊的次數。用完後會檢查 accuracy 是否超過 threshold。")]
+    [Tooltip("每一輪最大可射擊的 Go target 數量。處理完且生命值仍大於 0 時通關。")]
     public int maxClicks = 20;
 
-    [Tooltip("升級難度需要達到的 accuracy 門檻。0.8 代表 80%。")]
-    [Range(0f, 1f)]
-    public float threshold = 0.5f;
-
-    [Tooltip("click 用完且 accuracy 高於 threshold 時，target 速度會乘上的倍率。")]
+    [Tooltip("通關後 target 速度會乘上的倍率。")]
     public float speedIncreaseMultiplier = 1.25f;
 
     private int remainingClicks;
+
+    [SerializeField] private int maxMistakes = 0;
+
+    [SerializeField] private int health = 0;
+
+    private bool roundEnded = false;
 
     //calculate metrics
     private int HitCount = 0;
@@ -44,12 +46,20 @@ public class GameManager : MonoBehaviour
     void Awake()
     {
         Instance = this;
-        remainingClicks = maxClicks;
+        ResetRoundHealth();
 
         if (spawner == null)
         {
             spawner = FindObjectOfType<Spawner>();
         }
+    }
+
+    void OnValidate()
+    {
+        maxClicks = Mathf.Max(1, maxClicks);
+        speedIncreaseMultiplier = Mathf.Max(0f, speedIncreaseMultiplier);
+        maxMistakes = CalculateAllowedMistakes();
+        health = maxMistakes;
     }
 
     void Update()
@@ -62,16 +72,11 @@ public class GameManager : MonoBehaviour
 
     void CheckMouseClick()
     {
-        if (remainingClicks <= 0)
+        if (roundEnded)
         {
-            Debug.Log("No clicks remaining");
-            Time.timeScale = 0f;
+            Debug.Log("Round already ended");
             return;
         }
-
-        remainingClicks--;
-
-        Debug.Log("Remaining Clicks: " + remainingClicks);
 
         Camera mainCamera = Camera.main;
         if (mainCamera == null) return;
@@ -86,8 +91,6 @@ public class GameManager : MonoBehaviour
         {
             CheckTarget(target);
         }
-
-        CheckRoundEnd();
     }
 
     public void CheckTarget(Target target)
@@ -115,7 +118,7 @@ public class GameManager : MonoBehaviour
         {
             if (ActionZone == null) return false;
 
-            Vector2 p =target.transform.position - ActionZone.position;
+            Vector2 p = target.transform.position - ActionZone.position;
 
             return (p.x * p.x) / (radiusX * radiusX) + (p.y * p.y) / (radiusY * radiusY)
             <= 1f;
@@ -138,9 +141,11 @@ public class GameManager : MonoBehaviour
         target.handled = true;
         AddScore(100);
         HitCount++;
+        ConsumeShootableTarget();
         UpdateAcc();
         Debug.Log("Success, Score = " + score);
         Destroy(target.gameObject);
+        CheckRoundEnd();
     }
 
     public void CorrectRej(Target target) // correct rejection
@@ -158,9 +163,11 @@ public class GameManager : MonoBehaviour
         target.handled = true;
         AddScore(-100);
         FalseAlarm++;
+        LoseHealth();
         UpdateAcc();
         Debug.Log("Punish, Score = " + score);
         Destroy(target.gameObject);
+        CheckRoundEnd();
     }
 
     public void Miss(Target target)
@@ -168,9 +175,12 @@ public class GameManager : MonoBehaviour
         target.handled = true;
         AddScore(-50);
         MissCount++;
+        ConsumeShootableTarget();
+        LoseHealth();
         UpdateAcc();
         Debug.Log("Miss, Score = " + score);
         Destroy(target.gameObject);
+        CheckRoundEnd();
     }
     public void AddScore(int amount)
     {
@@ -179,23 +189,48 @@ public class GameManager : MonoBehaviour
 
     private void CheckRoundEnd()
     {
+        if (health <= 0)
+        {
+            roundEnded = true;
+            Debug.Log("Health depleted. Game over.");
+            Time.timeScale = 0f;
+            return;
+        }
+
         if (remainingClicks > 0) return;
 
-        if (Accuracy > threshold)
+        if (spawner != null)
         {
-            if (spawner != null)
-            {
-                spawner.EnableAdvancedMode(speedIncreaseMultiplier);
-            }
+            spawner.EnableAdvancedMode(speedIncreaseMultiplier);
+        }
 
-            remainingClicks = maxClicks;
-            Debug.Log("Accuracy passed threshold. Increasing difficulty.");
-        }
-        else
-        {
-            Debug.Log("No clicks remaining and accuracy did not pass threshold.");
-            Time.timeScale = 0f;
-        }
+        Debug.Log("Health survived. Stage cleared. Increasing difficulty.");
+        ResetRoundHealth();
+    }
+
+    private void ResetRoundHealth()
+    {
+        maxMistakes = CalculateAllowedMistakes();
+        health = maxMistakes;
+        remainingClicks = maxClicks;
+        roundEnded = false;
+    }
+
+    private int CalculateAllowedMistakes()
+    {
+        return Mathf.Max(1, maxClicks / 4);
+    }
+
+    private void ConsumeShootableTarget()
+    {
+        remainingClicks = Mathf.Max(0, remainingClicks - 1);
+        Debug.Log("Remaining Shootable Targets: " + remainingClicks);
+    }
+
+    private void LoseHealth()
+    {
+        health = Mathf.Max(0, health - 1);
+        Debug.Log("Health: " + health + "/" + maxMistakes);
     }
     //更改通關條件：'生命值條件'，注意GO/NOGO OBJ情況
 

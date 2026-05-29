@@ -32,12 +32,6 @@ public class Spawner : MonoBehaviour
     [Tooltip("多顆模式下，每一波最多生成幾顆 target。")]
     public int maxTargetsPerWave = 4;
 
-    [Tooltip("同一波 target 之間盡量保持的 Y 軸距離，用來降低剛生成就重疊或碰撞的機率。")]
-    public float sameWaveLaneSpacing = 0.75f;
-
-    [Tooltip("當同一波 target 數量超過 lane 數量時，允許在原 lane 上做的隨機 Y 偏移。")]
-    public float laneJitter = 0.6f;
-
     [Header("Speed")]
     [Tooltip("新生成 target 的基礎移動速度。")]
     public float baseTargetSpeed = 3f;
@@ -47,8 +41,8 @@ public class Spawner : MonoBehaviour
 
     private readonly List<GameObject> currentTargets = new List<GameObject>();
 
-    // 三條 lane
-    private float[] lanes = { -2f, 0f, 2f };
+    // 三條固定飛行軌道，由上而下。
+    private readonly float[] lanes = { 2f, 0f, -2f };
 
     void Start()
     {
@@ -61,8 +55,6 @@ public class Spawner : MonoBehaviour
         maxSpawnWait = Mathf.Max(minSpawnWait, maxSpawnWait);
         minTargetsPerWave = Mathf.Max(1, minTargetsPerWave);
         maxTargetsPerWave = Mathf.Max(minTargetsPerWave, maxTargetsPerWave);
-        sameWaveLaneSpacing = Mathf.Max(0f, sameWaveLaneSpacing);
-        laneJitter = Mathf.Max(0f, laneJitter);
         baseTargetSpeed = Mathf.Max(0f, baseTargetSpeed);
         speedMultiplier = Mathf.Max(0f, speedMultiplier);
     }
@@ -117,66 +109,20 @@ public class Spawner : MonoBehaviour
 
     float GetSeparatedLane(List<float> usedLanes)
     {
-        if (usedLanes.Count == 0)
+        if (usedLanes.Count < lanes.Length)
         {
-            return lanes[Random.Range(0, lanes.Length)];
-        }
-
-        for (int i = 0; i < 30; i++)
-        {
-            float candidate = lanes[Random.Range(0, lanes.Length)] + Random.Range(-laneJitter, laneJitter);
-
-            if (IsFarEnoughFromWave(candidate, usedLanes))
+            for (int i = 0; i < 30; i++)
             {
-                return candidate;
+                float candidate = lanes[Random.Range(0, lanes.Length)];
+
+                if (!usedLanes.Contains(candidate))
+                {
+                    return candidate;
+                }
             }
         }
 
-        return GetFarthestLane(usedLanes);
-    }
-
-    bool IsFarEnoughFromWave(float candidate, List<float> usedLanes)
-    {
-        foreach (float lane in usedLanes)
-        {
-            if (Mathf.Abs(candidate - lane) < sameWaveLaneSpacing)
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    float GetFarthestLane(List<float> usedLanes)
-    {
-        float bestLane = lanes[0];
-        float bestDistance = -1f;
-
-        foreach (float lane in lanes)
-        {
-            CheckFarthestCandidate(lane - laneJitter, usedLanes, ref bestLane, ref bestDistance);
-            CheckFarthestCandidate(lane, usedLanes, ref bestLane, ref bestDistance);
-            CheckFarthestCandidate(lane + laneJitter, usedLanes, ref bestLane, ref bestDistance);
-        }
-
-        return bestLane;
-    }
-
-    void CheckFarthestCandidate(float candidate, List<float> usedLanes, ref float bestLane, ref float bestDistance)
-    {
-        float nearestDistance = float.MaxValue;
-
-        foreach (float usedLane in usedLanes)
-        {
-            nearestDistance = Mathf.Min(nearestDistance, Mathf.Abs(candidate - usedLane));
-        }
-
-        if (nearestDistance > bestDistance)
-        {
-            bestDistance = nearestDistance;
-            bestLane = candidate;
-        }
+        return lanes[usedLanes.Count % lanes.Length];
     }
 
     void SpawnTarget(TargetType targetType, float spawnLane)
