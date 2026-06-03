@@ -11,6 +11,9 @@ public class Target : MonoBehaviour
     [Tooltip("這顆 target 的類型：Go 需要點擊，No-Go 需要避開。")]
     public TargetType type;
 
+    [Tooltip("這顆 target 的水果名稱，用於關卡條件判斷。")]
+    public string fruitName;
+
     [Tooltip("移動速度。Spawner 生成 target 時可能會覆蓋這個數值。")]
     public float speed = 3f;
 

@@ -4,6 +4,16 @@ using System.Collections.Generic;
 
 public class Spawner : MonoBehaviour
 {
+    [System.Serializable]
+    public class FruitPrefab
+    {
+        [Tooltip("水果名稱，用於關卡規則對應。")]
+        public string fruitName;
+
+        [Tooltip("對應水果的 prefab。")]
+        public GameObject prefab;
+    }
+
     //public GameObject targetPrefab;
     [Tooltip("Go target 使用的 prefab。")]
     public GameObject goPrefab;
@@ -30,7 +40,7 @@ public class Spawner : MonoBehaviour
     public int minTargetsPerWave = 2;
 
     [Tooltip("多顆模式下，每一波最多生成幾顆 target。")]
-    public int maxTargetsPerWave = 4;
+    public int maxTargetsPerWave = 3;
 
     [Header("Speed")]
     [Tooltip("新生成 target 的基礎移動速度。")]
@@ -39,6 +49,17 @@ public class Spawner : MonoBehaviour
     [Tooltip("目前速度倍率。實際速度 = Base Target Speed x Speed Multiplier。")]
     public float speedMultiplier = 1f;
 
+    [Header("Fruit Pool")]
+    [Tooltip("可用於關卡的水果 prefab 池。")]
+    public FruitPrefab[] fruitPool;
+
+    [Tooltip("啟動時指定的難度。")]
+    public Difficulty currentDifficulty = Difficulty.Easy;
+
+    // 當前難度級別的目標水果清單和完整水果清單
+    private List<FruitOption> currentTargetFruits = new List<FruitOption>();
+    private List<FruitOption> currentLevelFruits = new List<FruitOption>();
+
     private readonly List<GameObject> currentTargets = new List<GameObject>();
 
     // 三條固定飛行軌道，由上而下。
@@ -46,6 +67,7 @@ public class Spawner : MonoBehaviour
 
     void Start()
     {
+        
         StartCoroutine(SpawnLoop());
     }
 
@@ -57,6 +79,34 @@ public class Spawner : MonoBehaviour
         maxTargetsPerWave = Mathf.Max(minTargetsPerWave, maxTargetsPerWave);
         baseTargetSpeed = Mathf.Max(0f, baseTargetSpeed);
         speedMultiplier = Mathf.Max(0f, speedMultiplier);
+    }
+
+    /// <summary>
+    /// 設定當前難度並使用 DifficultyManager 生成該難度的水果列表。
+    /// </summary>
+    public void SetCurrentDifficulty(Difficulty difficulty)
+    {
+        currentDifficulty = difficulty;
+
+        if (DifficultyManager.Instance == null)
+        {
+            Debug.LogError("DifficultyManager instance not found!");
+            return;
+        }
+
+        // 使用 DifficultyManager 生成該難度的水果
+        (List<FruitOption> targets, List<FruitOption> allFruits) = 
+            DifficultyManager.Instance.GenerateLevelFruits(difficulty);
+
+        currentTargetFruits = targets;
+        currentLevelFruits = allFruits;
+
+        Debug.Log($"Difficulty set to {difficulty}. Targets: {currentTargetFruits.Count}, Total: {currentLevelFruits.Count}");
+        Debug.Log("Current target fruits:");
+        foreach (FruitOption fruit in currentTargetFruits)
+        {
+            Debug.Log($"GO target = {fruit.fruitName}");
+        }
     }
 
     IEnumerator SpawnLoop()
@@ -81,19 +131,34 @@ public class Spawner : MonoBehaviour
 
     void SpawnWave()
     {
+        if (currentLevelFruits.Count == 0)
+        {
+            Debug.LogWarning("No fruits available for this level!");
+            return;
+        }
+
         int targetCount = spawnMultipleTargets
             ? Random.Range(minTargetsPerWave, maxTargetsPerWave + 1)
             : 1;
+        
         int goIndex = spawnMultipleTargets ? Random.Range(0, targetCount) : -1;
         List<float> usedLanes = new List<float>();
 
         for (int i = 0; i < targetCount; i++)
         {
             TargetType targetType = GetTargetTypeForWave(i, goIndex);
+            FruitOption fruitOption = PickFruitOption(targetType);
+            
+            if (fruitOption == null)
+            {
+                Debug.LogWarning("Could not pick a fruit for spawn!");
+                continue;
+            }
+
             float lane = GetSeparatedLane(usedLanes);
             usedLanes.Add(lane);
 
-            SpawnTarget(targetType, lane);
+            SpawnTarget(targetType, lane, fruitOption);
         }
     }
 
@@ -105,6 +170,69 @@ public class Spawner : MonoBehaviour
         }
 
         return Random.value < noGoChance ? TargetType.NoGo : TargetType.Go;
+    }
+
+    /// <summary>
+    /// 根據目標類型挑選合適的水果。
+    /// Go: 從目標水果清單挑選
+    /// NoGo: 從完整水果清單中排除目標水果的其他水果
+    /// </summary>
+    private FruitOption PickFruitOption(TargetType targetType)
+    {
+        if (targetType == TargetType.Go)
+        {
+            // 從目標水果中隨機選擇
+            if (currentTargetFruits.Count > 0)
+            {
+                return currentTargetFruits[Random.Range(0, currentTargetFruits.Count)];
+            }
+        }
+        else // TargetType.NoGo
+        {
+            // 從完整清單中排除目標水果，隨機選擇
+            List<FruitOption> nonTargetFruits = new List<FruitOption>();
+            foreach (FruitOption fruit in currentLevelFruits)
+            {
+                bool isTarget = false;
+                foreach (FruitOption target in currentTargetFruits)
+                {
+                    if (fruit.fruitName == target.fruitName)
+                    {
+                        isTarget = true;
+                        break;
+                    }
+                }
+                if (!isTarget)
+                {
+                    nonTargetFruits.Add(fruit);
+                }
+            }
+
+            if (nonTargetFruits.Count > 0)
+            {
+                return nonTargetFruits[Random.Range(0, nonTargetFruits.Count)];
+            }
+        }
+
+        return null;
+    }
+
+    private GameObject GetPrefabForFruit(string fruitName)
+    {
+        if (string.IsNullOrEmpty(fruitName) || fruitPool == null)
+        {
+            return null;
+        }
+
+        foreach (FruitPrefab fruit in fruitPool)
+        {
+            if (fruit.fruitName == fruitName && fruit.prefab != null)
+            {
+                return fruit.prefab;
+            }
+        }
+
+        return null;
     }
 
     float GetSeparatedLane(List<float> usedLanes)
@@ -125,11 +253,12 @@ public class Spawner : MonoBehaviour
         return lanes[usedLanes.Count % lanes.Length];
     }
 
-    void SpawnTarget(TargetType targetType, float spawnLane)
+    void SpawnTarget(TargetType targetType, float spawnLane, FruitOption fruitOption)
     {
         // 隨機左右
         bool spawnLeft =
             Random.value > 0.5f;
+            
 
         Vector3 spawnPos;
         Vector2 moveDir;
@@ -149,34 +278,28 @@ public class Spawner : MonoBehaviour
             moveDir = Vector2.left;
         }
 
-        GameObject prefabToSpawn;
-
-        if (targetType == TargetType.NoGo)
+        // 優先使用水果對應的 prefab，否則使用預設的 Go/NoGo prefab
+        GameObject prefabToSpawn = GetPrefabForFruit(fruitOption.fruitName);
+        if (prefabToSpawn == null)
         {
-            prefabToSpawn = noGoPrefab;
+            prefabToSpawn = targetType == TargetType.NoGo ? noGoPrefab : goPrefab;
         }
-        else
-        {
-            prefabToSpawn = goPrefab;
-        }
-
 
         GameObject currentTarget = Instantiate(
-            // targetPrefab,
-            // spawnPos,
-            // Quaternion.identity
             prefabToSpawn,
             spawnPos,
             Quaternion.identity
         );
 
-
         // 設定移動方向
+        currentTarget.transform.localScale = Vector3.one * 0.1f;
         Target target = currentTarget.GetComponent<Target>();
 
         target.type = targetType;
+        target.fruitName = fruitOption.fruitName;
         target.moveDirection = moveDir;
         target.speed = baseTargetSpeed * speedMultiplier;
+        
 
         currentTargets.Add(currentTarget);
     }
@@ -191,4 +314,28 @@ public class Spawner : MonoBehaviour
     {
         currentTargets.RemoveAll(target => target == null);
     }
+
+    public Difficulty GetCurrentDifficulty()
+    {
+        return currentDifficulty;
+    }
+
+    public int GetRequiredHits()
+    {
+        if (DifficultyManager.Instance == null)
+        {
+            return 5; // 預設值
+        }
+
+        DifficultyConfig config = DifficultyManager.Instance.GetDifficultyConfig(currentDifficulty);
+        return config != null ? config.requiredHits : 5;
+    }
+
+
+    public List<FruitOption> GetCurrentTargetFruits()
+    {
+        return currentTargetFruits;
+    }
+
+    
 }
