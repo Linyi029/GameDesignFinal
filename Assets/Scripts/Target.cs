@@ -34,7 +34,7 @@ public class Target : MonoBehaviour
         {
             if (type == TargetType.Go)
             {
-                GameManager.Instance.Miss(this);
+                GameManager.Instance.Miss_Overtime(this);
             }
             else
             {

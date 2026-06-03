@@ -247,6 +247,18 @@ public class GameManager : MonoBehaviour
         Destroy(target.gameObject);
         CheckRoundEnd();
     }
+    public void Miss_Overtime(Target target)
+    {
+        target.handled = true;
+        AddScore(-50);
+        MissCount++;
+        ConsumeShootableTarget();
+        //LoseHealth();
+        UpdateAcc();
+        Debug.Log("Miss, Score = " + score);
+        Destroy(target.gameObject);
+        CheckRoundEnd();
+    }
     public void AddScore(int amount)
     {
         score += amount;
