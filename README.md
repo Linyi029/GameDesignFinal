@@ -1,13 +1,12 @@
 # TODO
 
-## 🔴 高優先度
+## 高優先度
 
-### 1. 修正 Could not pick a fruit for spawn
+### 修正 Could not pick a fruit for spawn
 
 原因：
 
-- Fruit Pool 數量不足
-- DifficultyConfig 要求水果種類超過實際資料數量
+- Fruit Pool 數量不足 (把全部的水果prefab填完)
 
 需檢查：
 
@@ -15,36 +14,9 @@
 - GenerateLevelFruits()
 - Fruit Pool
 
-避免：
-
-需要 3 種水果
-但實際只有 2 種水果
-
 ---
 
-### 2. 驗證每種水果需求數量
-
-確認：
-
-requiredHitsByFruit
-
-與
-
-currentHitsByFruit
-
-更新正確。
-
-需驗證：
-
-- 顯示數量
-- 實際完成數量
-- 通關判定
-
-完全一致。
-
----
-
-### 3. 驗證升級關卡後的資料重置
+### 驗證升級關卡後的資料重置
 
 確認：
 
@@ -58,21 +30,15 @@ currentHitsByFruit
 
 ---
 
-## 🟡 中優先度
+## 中優先度
 
-### 4. Intro 黑板 UI 美化
+### UI 美化
 
-依照設計稿：
-
-- 木框黑板背景
-- 水果圖示
-- 任務列表
-- START 按鈕
-- 限制步數
+依照設計稿拉背景
 
 ---
 
-### 5. 升級關卡後重新顯示 Intro
+### 升級關卡後重新顯示 Intro
 
 流程：
 
@@ -88,12 +54,13 @@ Start Next Level
 
 ---
 
-### 6. 遊戲中 HUD 任務追蹤
+### 遊戲中 HUD 任務追蹤
 
 即時顯示：
 
 香蕉 2 / 5
 蘋果 1 / 3
+生命值
 
 ---
 
@@ -162,11 +129,12 @@ Check Win / Lose
 點擊判定
 超出畫面判定
 
+---
 
 
-## 🟢 低優先度
+## Todo - 低優先度
 
-### 8. 音效
+### 音效
 
 - 點擊成功
 - 點擊失敗
@@ -175,7 +143,7 @@ Check Win / Lose
 
 ---
 
-### 9. 動畫
+### 動畫
 
 - 水果爆開效果
 - 通關動畫
@@ -183,12 +151,6 @@ Check Win / Lose
 
 ---
 
-### 10. 遊戲結果畫面
+### 遊戲結果畫面
 
-顯示：
-
-- Score
-- Accuracy
-- Miss
-- False Alarm
-- Correct Rejection
+顯示：Score/ Stars
