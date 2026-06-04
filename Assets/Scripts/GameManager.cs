@@ -35,6 +35,18 @@ public class GameManager : MonoBehaviour
     [Tooltip("完整的遊戲說明按鈕圖片，圖片內可直接包含文字。")]
     public Sprite instructionButtonSprite;
 
+    [Tooltip("第一頁說明黑板底圖 (help1)")]
+    public Sprite instructionPanelSpritePage1;
+
+    [Tooltip("第二頁說明黑板底圖 (help2)")]
+    public Sprite instructionPanelSpritePage2;
+
+    [Tooltip("說明頁第一頁的下一頁按鈕 (nextpage_on_help1)")]
+    public Sprite helpNextButtonSprite;
+
+    [Tooltip("說明頁第二頁的關閉按鈕 (close_on_help2)")]
+    public Sprite helpCloseButtonSprite;
+
     [Tooltip("完整的遊戲開始按鈕圖片，圖片內可直接包含文字。")]
     public Sprite startButtonSprite;
 
@@ -55,7 +67,10 @@ public class GameManager : MonoBehaviour
     private GameObject startMenuRoot;
     private GameObject instructionPanel;
     private GameObject levelIntroPanel;
+    // 🛠️ 宣告變數來控制分頁
+    private Image instructionImageComponent;
     private bool gameStarted = false;
+    private GameObject introCanvasObj;
 
 
     [SerializeField] private int score = 0;
@@ -264,28 +279,100 @@ public class GameManager : MonoBehaviour
         score += amount;
     }
 
+
+
+    // 🛠️ 新增三個難度按鈕的美術變數 (對應你的 btn_diff_e, btn_diff_m, btn_diff_ha)
+    [Header("Difficulty Selection UI")]
+    public Sprite easyButtonSprite;
+    public Sprite mediumButtonSprite;
+    public Sprite hardButtonSprite;
+
+    private GameObject difficultyMenuRoot;
+
+    // 🛠️ 改造原本的 StartGame()：點擊主畫面 START 後，先顯示難度選擇！
     public void StartGame()
     {
-        // 取得玩家已解鎖的最高難度
-        Difficulty currentDifficulty = DifficultyManager.Instance != null 
-            ? DifficultyManager.Instance.GetUnlockedDifficulty()
-            : Difficulty.Easy;
+        if (startMenuRoot != null)
+        {
+            startMenuRoot.SetActive(false); // 隱藏主畫面
+        }
+
+        ShowDifficultyMenu();
+    }
+
+    // 🛠️ 新增：顯示難度選擇畫面
+    private void ShowDifficultyMenu()
+    {
+        difficultyMenuRoot = new GameObject("Difficulty Menu Canvas");
+        Canvas canvas = difficultyMenuRoot.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = 101;
+
+        CanvasScaler scaler = difficultyMenuRoot.AddComponent<CanvasScaler>();
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1920f, 1080f);
+
+        difficultyMenuRoot.AddComponent<GraphicRaycaster>();
+
+        // 建立跟主畫面一樣的背景
+        GameObject background = CreateUiObject("Diff Background", difficultyMenuRoot.transform);
+        Image backgroundImage = background.AddComponent<Image>();
+        backgroundImage.sprite = startBackgroundSprite;
+        StretchToParent(background.GetComponent<RectTransform>());
+
+        // 建立三個大圓形按鈕
+        GameObject easyBtn = CreateMenuButton("Easy Button", background.transform, easyButtonSprite);
+        RectTransform easyRect = easyBtn.GetComponent<RectTransform>();
+        easyRect.anchoredPosition = new Vector2(-450f, 0f);
+        easyRect.sizeDelta = new Vector2(240f, 240f); // 🛠️ 強制改為正方形比例！
+        easyBtn.GetComponent<Button>().onClick.AddListener(() => OnDifficultySelected(Difficulty.Easy));
+        easyBtn.transform.SetAsLastSibling();
+
+        GameObject medBtn = CreateMenuButton("Medium Button", background.transform, mediumButtonSprite);
+        RectTransform medRect = medBtn.GetComponent<RectTransform>();
+        medRect.anchoredPosition = new Vector2(0f, 0f);
+        medRect.sizeDelta = new Vector2(240f, 240f); // 🛠️ 強制改為正方形比例！
+        medBtn.GetComponent<Button>().onClick.AddListener(() => OnDifficultySelected(Difficulty.Medium));
+        medBtn.transform.SetAsLastSibling();
+
+        GameObject hardBtn = CreateMenuButton("Hard Button", background.transform, hardButtonSprite);
+        RectTransform hardRect = hardBtn.GetComponent<RectTransform>();
+        hardRect.anchoredPosition = new Vector2(450f, 0f);
+        hardRect.sizeDelta = new Vector2(240f, 240f); // 🛠️ 強制改為正方形比例！
+        hardBtn.GetComponent<Button>().onClick.AddListener(() => OnDifficultySelected(Difficulty.Hard));
+        hardBtn.transform.SetAsLastSibling();
+    }
+
+    // 🛠️ 新增：玩家選好難度後的實際開局邏輯
+    // 🛠️ 修正後的選好難度開局邏輯
+    private void OnDifficultySelected(Difficulty selectedDifficulty)
+    {
+        if (difficultyMenuRoot != null)
+        {
+            Destroy(difficultyMenuRoot); // 關閉難度選單
+        }
 
         // 設定難度
         if (spawner != null)
         {
-            spawner.SetCurrentDifficulty(currentDifficulty);
+            spawner.SetCurrentDifficulty(selectedDifficulty);
         }
 
+        // 1. 先產生這一關的水果隨機數量需求
         GenerateRoundTargetRequirements();
 
-        if (showStartMenu && startMenuRoot != null)
-        {
-            ShowLevelIntroPanel(currentDifficulty);
-            return;
-        }
+        // 2. 顯示目標黑板
+        ShowLevelIntroPanel(selectedDifficulty);
 
-        BeginGameplay();
+
+        // ⚠️ 關鍵修正：把原本可能會自動跑進遊戲的邏輯攔截掉！
+        // 讓遊戲時間暫停，等待玩家點擊黑板上的 START 按鈕才執行 BeginGameplay()
+        gameStarted = false;
+        Time.timeScale = 0f;
+        if (spawner != null)
+        {
+            spawner.enabled = false; // 暫時關閉生成器，不讓小朋友偷跑
+        }
     }
 
     private void BeginGameplay()
@@ -303,9 +390,10 @@ public class GameManager : MonoBehaviour
             Destroy(startMenuRoot);
             startMenuRoot = null;
         }
-        if (levelIntroPanel != null)
+        if (introCanvasObj != null)
         {
-            Destroy(levelIntroPanel);
+            Destroy(introCanvasObj);
+            introCanvasObj = null;
             levelIntroPanel = null;
         }
     }
@@ -355,12 +443,18 @@ public class GameManager : MonoBehaviour
         signRect.anchoredPosition = new Vector2(0f, 300f);
         SetSizeFromSprite(signRect, titleSignSprite, new Vector2(760f, 520f), new Vector2(650f, 220f));
 
+        // 🛠️ 修正「遊戲說明」按鈕尺寸
         GameObject instructionButton = CreateMenuButton("Instruction Button", background.transform, instructionButtonSprite);
-        instructionButton.GetComponent<RectTransform>().anchoredPosition = new Vector2(-210f, -160f);
+        RectTransform instRect = instructionButton.GetComponent<RectTransform>();
+        instRect.anchoredPosition = new Vector2(-210f, -160f);
+        instRect.sizeDelta = new Vector2(250f, 100f); // 🌟 改為符合美術圖的 2.5 : 1 黃金比例！
         instructionButton.GetComponent<Button>().onClick.AddListener(ToggleInstructions);
 
+        // 🛠️ 修正「START」按鈕尺寸
         GameObject startButton = CreateMenuButton("Start Button", background.transform, startButtonSprite);
-        startButton.GetComponent<RectTransform>().anchoredPosition = new Vector2(210f, -160f);
+        RectTransform startRect = startButton.GetComponent<RectTransform>();
+        startRect.anchoredPosition = new Vector2(210f, -160f);
+        startRect.sizeDelta = new Vector2(250f, 100f); // 🌟 改為符合美術圖的 2.5 : 1 黃金比例！
         startButton.GetComponent<Button>().onClick.AddListener(() => StartGame());
 
         CreateInstructionPanel(background.transform);
@@ -372,7 +466,9 @@ public class GameManager : MonoBehaviour
         Image buttonImage = buttonObject.AddComponent<Image>();
         buttonImage.sprite = buttonSprite;
         buttonImage.type = Image.Type.Simple;
-        buttonImage.preserveAspect = true;
+
+        // 🛠️ 核心修正：徹底關閉 UI 面板按鈕的 preserveAspect，消滅模糊馬賽克！
+        buttonImage.preserveAspect = false;
 
         RectTransform buttonRect = buttonObject.GetComponent<RectTransform>();
         buttonRect.anchorMin = new Vector2(0.5f, 0.5f);
@@ -388,36 +484,69 @@ public class GameManager : MonoBehaviour
         return buttonObject;
     }
 
-
     private void CreateInstructionPanel(Transform parent)
     {
+        // 建立說明的母面板
         instructionPanel = CreateUiObject("Instruction Panel", parent);
-        Image panelImage = instructionPanel.AddComponent<Image>();
-        panelImage.sprite = instructionPanelSprite;
-        panelImage.type = Image.Type.Simple;
-        panelImage.preserveAspect = true;
-        
+        instructionImageComponent = instructionPanel.AddComponent<Image>();
+
+        // 預設顯示第一頁 (help1)
+        instructionImageComponent.sprite = instructionPanelSpritePage1 != null ? instructionPanelSpritePage1 : instructionPanelSprite;
+        instructionImageComponent.type = Image.Type.Simple;
+        instructionImageComponent.preserveAspect = true;
+
         RectTransform rect = instructionPanel.GetComponent<RectTransform>();
-        SetSizeFromSprite(rect, instructionPanelSprite, new Vector2(760f, 300f), new Vector2(760f, 300f));
+        SetSizeFromSprite(rect, instructionImageComponent.sprite, new Vector2(900f, 650f), new Vector2(760f, 300f));
         rect.anchoredPosition = new Vector2(0f, 10f);
-        
+
+        // 🛠️ 讓黑板本身可以被點擊 (新增 Button 組件)
+        Button panelButton = instructionPanel.AddComponent<Button>();
+        panelButton.transition = Button.Transition.None; // 關閉點擊閃爍效果
+        panelButton.onClick.AddListener(OnInstructionPanelClicked);
+
         instructionPanel.SetActive(false);
+    }
 
-        string instructionText =
-            "遊戲說明\n\n" +
-            "看準水果進入中間的 Action Zone 時點擊。\n" +
-            "點到正確的 Go target 會得分，錯過或點到 No-Go target 會扣生命。\n" +
-            "每一關開始前會顯示該難度的目標水果數量與通關條件。";
+    // 🛠️ 核心邏輯：點擊黑板本身時的切換行為
+    private void OnInstructionPanelClicked()
+    {
+        // 如果目前顯示的是第一頁 (help1)，點擊就換到第二頁 (help2)
+        if (instructionImageComponent.sprite == instructionPanelSpritePage1)
+        {
+            if (instructionPanelSpritePage2 != null)
+            {
+                instructionImageComponent.sprite = instructionPanelSpritePage2;
+            }
+        }
+        else
+        {
+            // 如果已經在第二頁了，點擊黑板就直接「關閉說明」
+            ToggleInstructions();
+        }
+    }
 
-        Text text = CreateText(
-            "Instruction Text",
-            instructionPanel.transform,
-            instructionText,
-            32,
-            FontStyle.Bold,
-            Color.white
-        );
-        text.alignment = TextAnchor.MiddleCenter;
+    // 🛠️ 還原原本的 Toggle 邏輯
+    private void ToggleInstructions()
+    {
+        if (instructionPanel != null)
+        {
+            bool isActive = !instructionPanel.activeSelf;
+            instructionPanel.SetActive(isActive);
+
+            if (isActive)
+            {
+                instructionImageComponent.sprite = instructionPanelSpritePage1;
+            }
+        }
+    }
+
+    // 🛠️ 點擊下一頁的切換切換
+    private void ShowInstructionPage2()
+    {
+        if (instructionImageComponent != null && instructionPanelSpritePage2 != null)
+        {
+            instructionImageComponent.sprite = instructionPanelSpritePage2; // 換成 help2 底圖
+        }
     }
 
     private void CreateTargetRow(Transform parent, FruitOption fruit, int count, float y)
@@ -432,10 +561,16 @@ public class GameManager : MonoBehaviour
         GameObject iconObj = CreateUiObject("Fruit Icon", row.transform);
         Image iconImage = iconObj.AddComponent<Image>();
 
-        SpriteRenderer sr = fruit.prefab.GetComponent<SpriteRenderer>();
+        // 🛠️ 修正：連同子物件(Fruit_Visual)的 Sprite 紀錄一起翻出來
+        SpriteRenderer sr = fruit.prefab.GetComponentInChildren<SpriteRenderer>();
         if (sr != null)
         {
             iconImage.sprite = sr.sprite;
+            iconImage.color = Color.white;
+        }
+        else
+        {
+            iconImage.color = new Color(0, 0, 0, 0); // 防呆隱藏
         }
 
         iconImage.preserveAspect = true;
@@ -446,6 +581,7 @@ public class GameManager : MonoBehaviour
         iconRect.anchoredPosition = new Vector2(-70f, 0f);
         iconRect.sizeDelta = new Vector2(70f, 70f);
 
+        // 建立要求數量文字 (× count)
         Text countText = CreateText(
             "Target Count",
             row.transform,
@@ -455,7 +591,8 @@ public class GameManager : MonoBehaviour
             Color.white
         );
 
-        RectTransform countRect = countText.GetComponent<RectTransform>();
+        // 🛠️ 核心修正：必須從 countText 的 gameObject 身上去拿 RectTransform，才不會崩潰中斷！
+        RectTransform countRect = countText.gameObject.GetComponent<RectTransform>();
         countRect.anchorMin = new Vector2(0.5f, 0.5f);
         countRect.anchorMax = new Vector2(0.5f, 0.5f);
         countRect.anchoredPosition = new Vector2(80f, 0f);
@@ -525,6 +662,13 @@ public class GameManager : MonoBehaviour
 
     private void ShowLevelIntroPanel(Difficulty difficulty)
     {
+        // 🛠️ 徹底修復灰色殘留：如果之前有殘留的畫布，直接整隻消滅！
+        if (introCanvasObj != null)
+        {
+            Destroy(introCanvasObj);
+            introCanvasObj = null;
+        }
+
         if (levelIntroPanel != null)
         {
             Destroy(levelIntroPanel);
@@ -535,7 +679,26 @@ public class GameManager : MonoBehaviour
             instructionPanel.SetActive(false);
         }
 
-        levelIntroPanel = CreateUiObject("Level Intro Panel", startMenuRoot.transform);
+        // 🛠️ 建立畫布與鋪上漂亮的水果重複背景底圖
+        introCanvasObj = new GameObject("Level Intro Canvas");
+        Canvas canvas = introCanvasObj.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = 102;
+
+        CanvasScaler scaler = introCanvasObj.AddComponent<CanvasScaler>();
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1920f, 1080f);
+
+        introCanvasObj.AddComponent<GraphicRaycaster>();
+
+        // 建立背景
+        GameObject background = CreateUiObject("Intro Background", introCanvasObj.transform);
+        Image backgroundImage = background.AddComponent<Image>();
+        backgroundImage.sprite = startBackgroundSprite;
+        StretchToParent(background.GetComponent<RectTransform>());
+
+        // 把黑板掛在背景底下
+        levelIntroPanel = CreateUiObject("Level Intro Panel", background.transform);
 
         Image panelImage = levelIntroPanel.AddComponent<Image>();
         panelImage.sprite = levelIntroBackgroundSprite != null
@@ -550,6 +713,7 @@ public class GameManager : MonoBehaviour
         rect.anchoredPosition = new Vector2(0f, 20f);
         SetSizeFromSprite(rect, panelImage.sprite, new Vector2(1000f, 680f), new Vector2(900f, 600f));
 
+        // 大標題「目標」
         Text title = CreateText(
             "Mission Title",
             levelIntroPanel.transform,
@@ -565,6 +729,7 @@ public class GameManager : MonoBehaviour
         titleRect.anchoredPosition = new Vector2(0f, 180f);
         titleRect.sizeDelta = new Vector2(400f, 90f);
 
+        // 🌟 撈出隨機水果目標並計算
         List<FruitOption> targetFruits = spawner.GetCurrentTargetFruits();
 
         float startY = 70f;
@@ -586,6 +751,7 @@ public class GameManager : MonoBehaviour
             );
         }
 
+        // 限制步數文字
         Text clickText = CreateText(
             "Click Limit Text",
             levelIntroPanel.transform,
@@ -601,6 +767,7 @@ public class GameManager : MonoBehaviour
         clickRect.anchoredPosition = new Vector2(0f, -140f);
         clickRect.sizeDelta = new Vector2(600f, 80f);
 
+        // 🛠️ 建立美術組的綠色 START 按鈕
         GameObject startButton = CreateMenuButton(
             "Level Intro Start Button",
             levelIntroPanel.transform,
@@ -609,8 +776,17 @@ public class GameManager : MonoBehaviour
                 : startButtonSprite
         );
 
-        startButton.GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, -235f);
+        // 🛠️ 完美對位：讓按鈕浮現在黑板內部的下緣
+        RectTransform startBtnRect = startButton.GetComponent<RectTransform>();
+        startBtnRect.anchorMin = new Vector2(0.5f, 0.5f);
+        startBtnRect.anchorMax = new Vector2(0.5f, 0.5f);
+        startBtnRect.anchoredPosition = new Vector2(0f, -220f); // 🌟 往上拉到合適高度，不再被扯到最底層！
+        startBtnRect.sizeDelta = new Vector2(250f, 90f);
+
+        startButton.transform.SetAsLastSibling(); // 確保不被蓋住
         startButton.GetComponent<Button>().onClick.AddListener(BeginGameplay);
+
+        // ❌ 刪除原本最後兩行會把按鈕重新扯到底部、重複綁定監聽器的程式碼！
     }
 
 
@@ -636,15 +812,9 @@ public class GameManager : MonoBehaviour
             Difficulty.Hard => "困難",
             _ => "未知"
         };
-    }
 
-    private void ToggleInstructions()
-    {
-        if (instructionPanel != null)
-        {
-            instructionPanel.SetActive(!instructionPanel.activeSelf);
-        }
     }
+   
 
     private GameObject CreateUiObject(string objectName, Transform parent)
     {
@@ -659,13 +829,24 @@ public class GameManager : MonoBehaviour
         GameObject textObject = CreateUiObject(objectName, parent);
         Text textComponent = textObject.AddComponent<Text>();
         textComponent.text = text;
-        textComponent.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+
+        // 🛠️ 修正：改用安全穩定的系統 Arial 載入方式，解決傳入單一字串報錯的問題
+        textComponent.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+
+        // 防呆：如果 Arial 還找不到，再退回 Legacy 字體
+        if (textComponent.font == null)
+        {
+            textComponent.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        }
+
         textComponent.fontSize = fontSize;
         textComponent.fontStyle = fontStyle;
         textComponent.color = color;
         textComponent.alignment = TextAnchor.MiddleCenter;
-        textComponent.horizontalOverflow = HorizontalWrapMode.Wrap;
-        textComponent.verticalOverflow = VerticalWrapMode.Truncate;
+
+        // 將溢出模式改為 Overflow！確保數字和 × 絕對不會被文字框裁切
+        textComponent.horizontalOverflow = HorizontalWrapMode.Overflow;
+        textComponent.verticalOverflow = VerticalWrapMode.Overflow;
 
         RectTransform rect = textObject.GetComponent<RectTransform>();
         StretchToParent(rect);
@@ -750,9 +931,22 @@ public class GameManager : MonoBehaviour
         maxMistakes = CalculateAllowedMistakes();
         health = maxMistakes;
         remainingClicks = maxClicks;
-        roundHits = 0;
-        currentHitsByFruit.Clear();
         roundEnded = false;
+
+        // 🛠️ 徹底修復：重置所有通關所需的數據與計算指標
+        roundHits = 0;
+        totalRequiredHits = 0;
+        requiredHitsByFruit.Clear();
+        currentHitsByFruit.Clear();
+
+        // 重置認知測驗的專注力數據指標
+        HitCount = 0;
+        MissCount = 0;
+        CorrectReject = 0;
+        FalseAlarm = 0;
+        Accuracy = 0f;
+
+        Debug.Log("✓ 關卡數據已完全重置，防殘留保護已啟動。");
     }
 
     private int CalculateAllowedMistakes()
