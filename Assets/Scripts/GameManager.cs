@@ -51,7 +51,7 @@ public class GameManager : MonoBehaviour
 
 
 
-
+    private bool waitingForLevelIntro = false;
     private GameObject startMenuRoot;
     private GameObject instructionPanel;
     private GameObject levelIntroPanel;
@@ -290,7 +290,9 @@ public class GameManager : MonoBehaviour
 
     private void BeginGameplay()
     {
-        gameStarted = true;
+        gameStarted = true ;
+        waitingForLevelIntro = false;
+        roundEnded = false;
         Time.timeScale = 1f;
 
         if (spawner != null)
@@ -462,66 +464,60 @@ public class GameManager : MonoBehaviour
         countRect.sizeDelta = new Vector2(180f, 80f);
     }
 
-    // private void ShowLevelIntroPanel(Difficulty difficulty)
-    // {
-    //     if (levelIntroPanel != null)
-    //     {
-    //         Destroy(levelIntroPanel);
-    //     }
+    private void EnsureStartMenuRootExists()
+    {
+        if (startMenuRoot != null)
+        {
+            return;
+        }
 
-    //     if (instructionPanel != null)
-    //     {
-    //         instructionPanel.SetActive(false);
-    //     }
+        EnsureEventSystemExists();
 
-    //     levelIntroPanel = CreateUiObject("Level Intro Panel", startMenuRoot.transform);
-    //     Image panelImage = levelIntroPanel.AddComponent<Image>();
-    //     panelImage.sprite = instructionPanelSprite;
-    //     panelImage.type = Image.Type.Simple;
-    //     panelImage.preserveAspect = true;
+        startMenuRoot = new GameObject("Fruit Start Menu Canvas");
 
-    //     RectTransform rect = levelIntroPanel.GetComponent<RectTransform>();
-    //     rect.anchorMin = new Vector2(0.5f, 0.5f);
-    //     rect.anchorMax = new Vector2(0.5f, 0.5f);
-    //     SetSizeFromSprite(rect, instructionPanelSprite, new Vector2(820f, 360f), new Vector2(820f, 360f));
-    //     rect.anchoredPosition = new Vector2(0f, 40f);
+        Canvas canvas = startMenuRoot.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = 100;
 
-    //     // Text text = CreateText(
-    //     //     "Level Intro Text",
-    //     //     levelIntroPanel.transform,
-    //     //     GetLevelStartText(difficulty),
-    //     //     32,
-    //     //     FontStyle.Bold,
-    //     //     Color.black
-    //     // );
-    //     // text.alignment = TextAnchor.MiddleCenter;
-    //     // RectTransform textRect = text.GetComponent<RectTransform>();
-    //     // textRect.offsetMin = new Vector2(40f, 90f);
-    //     // textRect.offsetMax = new Vector2(-40f, -40f);
+        CanvasScaler scaler = startMenuRoot.AddComponent<CanvasScaler>();
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1920f, 1080f);
+        scaler.matchWidthOrHeight = 0.5f;
 
-    //     GameObject continueButton = CreateUiObject("Continue Button", levelIntroPanel.transform);
-    //     Image buttonImage = continueButton.AddComponent<Image>();
-    //     buttonImage.color = new Color(0.76f, 0.52f, 0.31f, 1f);
+        startMenuRoot.AddComponent<GraphicRaycaster>();
+    }
 
-    //     RectTransform buttonRect = continueButton.GetComponent<RectTransform>();
-    //     buttonRect.anchorMin = new Vector2(0.5f, 0f);
-    //     buttonRect.anchorMax = new Vector2(0.5f, 0f);
-    //     buttonRect.sizeDelta = new Vector2(220f, 64f);
-    //     buttonRect.anchoredPosition = new Vector2(0f, 34f);
 
-    //     Button button = continueButton.AddComponent<Button>();
-    //     button.onClick.AddListener(BeginGameplay);
+    private void PrepareNextLevelIntro()
+    {
+        waitingForLevelIntro = true;
+        gameStarted = false;
+        roundEnded = true;
+        Time.timeScale = 0f;
 
-    //     Text buttonText = CreateText(
-    //         "Continue Text",
-    //         continueButton.transform,
-    //         "開始關卡",
-    //         28,
-    //         FontStyle.Bold,
-    //         Color.white
-    //     );
-    //     buttonText.alignment = TextAnchor.MiddleCenter;
-    // }
+        if (spawner != null)
+        {
+            spawner.enabled = false;
+        }
+
+        ResetRoundHealth();
+
+        Difficulty nextDifficulty = DifficultyManager.Instance != null
+            ? DifficultyManager.Instance.GetUnlockedDifficulty()
+            : Difficulty.Easy;
+
+        if (spawner != null)
+        {
+            spawner.SetCurrentDifficulty(nextDifficulty);
+        }
+
+        GenerateRoundTargetRequirements();
+
+        EnsureStartMenuRootExists();
+
+        ShowLevelIntroPanel(nextDifficulty);
+    }
+
 
     private void ShowLevelIntroPanel(Difficulty difficulty)
     {
@@ -550,21 +546,6 @@ public class GameManager : MonoBehaviour
         rect.anchoredPosition = new Vector2(0f, 20f);
         SetSizeFromSprite(rect, panelImage.sprite, new Vector2(1000f, 680f), new Vector2(900f, 600f));
 
-        Text title = CreateText(
-            "Mission Title",
-            levelIntroPanel.transform,
-            "目標",
-            64,
-            FontStyle.Bold,
-            Color.white
-        );
-
-        RectTransform titleRect = title.GetComponent<RectTransform>();
-        titleRect.anchorMin = new Vector2(0.5f, 0.5f);
-        titleRect.anchorMax = new Vector2(0.5f, 0.5f);
-        titleRect.anchoredPosition = new Vector2(0f, 180f);
-        titleRect.sizeDelta = new Vector2(400f, 90f);
-
         List<FruitOption> targetFruits = spawner.GetCurrentTargetFruits();
 
         float startY = 70f;
@@ -589,7 +570,7 @@ public class GameManager : MonoBehaviour
         Text clickText = CreateText(
             "Click Limit Text",
             levelIntroPanel.transform,
-            $"限制步數： {maxClicks} 步",
+            $"{maxClicks} 步",
             42,
             FontStyle.Bold,
             Color.white
@@ -743,6 +724,7 @@ public class GameManager : MonoBehaviour
         Debug.Log("Health survived. Stage cleared. Increasing difficulty.");
         ResetRoundHealth();
         StartGame();
+        PrepareNextLevelIntro();
     }
 
     private void ResetRoundHealth()
@@ -785,31 +767,6 @@ public class GameManager : MonoBehaviour
         }
 
         return Mathf.Max(1, requiredHits);
-    }
-
-    // private string GetLevelIntroText()
-    // {
-    //     if (DifficultyManager.Instance != null)
-    //     {
-    //         Difficulty difficulty = spawner != null ? spawner.GetCurrentDifficulty() : Difficulty.Easy;
-    //         return DifficultyManager.Instance.GetLevelIntroText(difficulty);
-    //     }
-
-    //     return "點擊目標水果，避開不該點擊的物件。";
-    // }
-    private string GetLevelIntroText()
-    {
-        if (DifficultyManager.Instance != null)
-        {
-            Difficulty difficulty =
-                spawner != null ?
-                spawner.GetCurrentDifficulty() :
-                Difficulty.Easy;
-
-            return DifficultyManager.Instance.GetLevelIntroText(difficulty);
-        }
-
-        return "點擊目標水果，避開不該點擊的物件。";
     }
 
     private void GenerateRoundTargetRequirements()

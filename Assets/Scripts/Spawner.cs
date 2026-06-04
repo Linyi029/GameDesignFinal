@@ -14,13 +14,6 @@ public class Spawner : MonoBehaviour
         public GameObject prefab;
     }
 
-    //public GameObject targetPrefab;
-    [Tooltip("Go target 使用的 prefab。")]
-    public GameObject goPrefab;
-
-    [Tooltip("No-Go target 使用的 prefab。")]
-    public GameObject noGoPrefab;
-
     [Header("Spawn Balance")]
     [Tooltip("單顆模式下生成 No-Go 的機率。多顆模式會固定一波只有一顆 Go，其餘皆為 No-Go。")]
     [Range(0f, 1f)]
@@ -107,6 +100,17 @@ public class Spawner : MonoBehaviour
         {
             Debug.Log($"GO target = {fruit.fruitName}");
         }
+        Debug.Log("=== Target Fruits ===");
+        foreach (FruitOption fruit in currentTargetFruits)
+        {
+            Debug.Log("GO: " + fruit.fruitName);
+        }
+
+        Debug.Log("=== Level Fruits ===");
+        foreach (FruitOption fruit in currentLevelFruits)
+        {
+            Debug.Log("LEVEL: " + fruit.fruitName);
+        }
     }
 
     IEnumerator SpawnLoop()
@@ -189,11 +193,12 @@ public class Spawner : MonoBehaviour
         }
         else // TargetType.NoGo
         {
-            // 從完整清單中排除目標水果，隨機選擇
             List<FruitOption> nonTargetFruits = new List<FruitOption>();
+
             foreach (FruitOption fruit in currentLevelFruits)
             {
                 bool isTarget = false;
+
                 foreach (FruitOption target in currentTargetFruits)
                 {
                     if (fruit.fruitName == target.fruitName)
@@ -202,6 +207,7 @@ public class Spawner : MonoBehaviour
                         break;
                     }
                 }
+
                 if (!isTarget)
                 {
                     nonTargetFruits.Add(fruit);
@@ -213,7 +219,7 @@ public class Spawner : MonoBehaviour
                 return nonTargetFruits[Random.Range(0, nonTargetFruits.Count)];
             }
         }
-
+        Debug.LogWarning("No No-Go fruits available. Check currentLevelFruits / currentTargetFruits.");
         return null;
     }
 
@@ -280,10 +286,10 @@ public class Spawner : MonoBehaviour
 
         // 優先使用水果對應的 prefab，否則使用預設的 Go/NoGo prefab
         GameObject prefabToSpawn = GetPrefabForFruit(fruitOption.fruitName);
-        if (prefabToSpawn == null)
-        {
-            prefabToSpawn = targetType == TargetType.NoGo ? noGoPrefab : goPrefab;
-        }
+        // if (prefabToSpawn == null)
+        // {
+        //     prefabToSpawn = targetType == TargetType.NoGo ? noGoPrefab : goPrefab;
+        // }
 
         GameObject currentTarget = Instantiate(
             prefabToSpawn,

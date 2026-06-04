@@ -257,7 +257,7 @@ public class DifficultyManager : MonoBehaviour
                     // 挑 5 個干擾水果
                     // 可以和目標同形狀但不同顏色，或完全不同
                     List<string> excludeFruits = new List<string> { firstTarget.fruitName, secondTarget.fruitName };
-                    List<FruitOption> distractors = PickRandomFruits(null, 5, excludeFruits);
+                    List<FruitOption> distractors = PickRandomFruits(null, 2, excludeFruits);
                     allLevelFruits.AddRange(distractors);
                 }
             }
