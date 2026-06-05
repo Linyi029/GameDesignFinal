@@ -31,7 +31,6 @@ public class GameManager : MonoBehaviour
     public Sprite titleSignSprite;
 
 
-
     [Tooltip("完整的遊戲說明按鈕圖片，圖片內可直接包含文字。")]
     public Sprite instructionButtonSprite;
 
@@ -47,15 +46,17 @@ public class GameManager : MonoBehaviour
 
     [Tooltip("關卡開始按鈕圖片。")]
     public Sprite levelIntroStartButtonSprite;
-
-
-
+    
+    [Header("Action Zone Visual")]
+    public SpriteRenderer trayActionZoneSprite;
 
     private bool waitingForLevelIntro = false;
     private GameObject startMenuRoot;
     private GameObject instructionPanel;
     private GameObject levelIntroPanel;
     private bool gameStarted = false;
+
+    public TrayFollower trayFollower;
 
 
     [SerializeField] private int score = 0;
@@ -110,6 +111,7 @@ public class GameManager : MonoBehaviour
         {
             StartGame();
         }
+
     }
 
     void OnValidate()
@@ -134,6 +136,10 @@ public class GameManager : MonoBehaviour
         {
             return;
         }
+        if (trayFollower != null)
+        {
+            trayFollower.ShowAtClickPosition(Input.mousePosition);
+        }
 
         if (roundEnded)
         {
@@ -154,6 +160,8 @@ public class GameManager : MonoBehaviour
         {
             CheckTarget(target);
         }
+
+
     }
 
     public void CheckTarget(Target target)
@@ -309,6 +317,15 @@ public class GameManager : MonoBehaviour
         {
             Destroy(levelIntroPanel);
             levelIntroPanel = null;
+        }
+        if (trayActionZoneSprite != null)
+        {
+            radiusX = trayActionZoneSprite.bounds.size.x / 2f;
+        }
+        if (ActionZone != null && trayActionZoneSprite != null)
+        {
+            ActionZone.position = trayActionZoneSprite.bounds.center;
+            radiusX = trayActionZoneSprite.bounds.size.x / 2f;
         }
     }
 
@@ -594,30 +611,6 @@ public class GameManager : MonoBehaviour
         startButton.GetComponent<Button>().onClick.AddListener(BeginGameplay);
     }
 
-
-
-    // private string GetLevelStartText(Difficulty difficulty)
-    // {
-    //     string levelText =
-    //         $"{GetDifficultyName(difficulty)}難度\n\n" +
-    //         $"{GetTargetRequirementText()}\n\n" +
-    //         $"通關條件：成功點擊 {GetRequiredHits()} 個指定水果\n" +
-    //         $"生命值：{maxMistakes}\n" +
-    //         $"最大可點擊次數：{maxClicks}";
-
-    //     return levelText;
-    // }
-
-    private string GetDifficultyName(Difficulty difficulty)
-    {
-        return difficulty switch
-        {
-            Difficulty.Easy => "簡單",
-            Difficulty.Medium => "普通",
-            Difficulty.Hard => "困難",
-            _ => "未知"
-        };
-    }
 
     private void ToggleInstructions()
     {

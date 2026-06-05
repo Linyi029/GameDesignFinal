@@ -370,17 +370,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7c064835a2be34c7e9ac071a4ed5b086, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  goPrefab: {fileID: 7985165492864188683, guid: 3974480ca87f04d0b8372b4425461af1, type: 3}
-  noGoPrefab: {fileID: 7985165492864188683, guid: 8409d0e1796e546f192459d6a5f07d27, type: 3}
-  noGoChance: 0.3
+  noGoChance: 0.843
   minSpawnWait: 0.5
   maxSpawnWait: 2
-  spawnMultipleTargets: 0
+  spawnMultipleTargets: 1
   minTargetsPerWave: 2
   maxTargetsPerWave: 4
   baseTargetSpeed: 3
   speedMultiplier: 1
-  fruitPool: []
+  fruitPool:
+  - fruitName: "\u7DA0\u860B\u679C"
+    prefab: {fileID: 8664185641947377099, guid: 1dbe40d249c5b45fca5b36f7aa2f20e8, type: 3}
+  - fruitName: "\u9EC3\u9999\u8549"
+    prefab: {fileID: 5323405905394862030, guid: b6b773661300d480686cbb7f2e5b08fa, type: 3}
+  - fruitName: "\u7D05\u860B\u679C"
+    prefab: {fileID: 5974301429452221908, guid: 0e1fce6b2d22949e58bd85c050ff3687, type: 3}
+  - fruitName: "\u7DA0\u8461\u8404"
+    prefab: {fileID: 231423354753973474, guid: 8751ba2654b424326b6a8c4ed8b5ad7d, type: 3}
+  - fruitName: "\u85CD\u8393"
+    prefab: {fileID: 7241457585829368043, guid: 6219a10a25cf8402d9b3f90d4ede051a, type: 3}
   currentDifficulty: 0
 --- !u!4 &622967260
 Transform:
@@ -530,6 +538,90 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!1 &1172940195
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1172940197}
+  - component: {fileID: 1172940196}
+  m_Layer: 0
+  m_Name: Player_point_of_view
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!212 &1172940196
+SpriteRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1172940195}
+  m_Enabled: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 0
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 0
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_Sprite: {fileID: 21300000, guid: 7d9a5ab8adbb2493aab0c8f9dce99a8c, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_FlipX: 0
+  m_FlipY: 0
+  m_DrawMode: 0
+  m_Size: {x: 40, y: 22.5}
+  m_AdaptiveModeThreshold: 0.5
+  m_SpriteTileMode: 0
+  m_WasSpriteAssigned: 1
+  m_MaskInteraction: 0
+  m_SpriteSortPoint: 0
+--- !u!4 &1172940197
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1172940195}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.3, y: 0.5, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1341185421
 GameObject:
   m_ObjectHideFlags: 0
@@ -664,15 +756,33 @@ MonoBehaviour:
   allFruits:
   - fruitName: "\u7DA0\u860B\u679C"
     displayName: "\u7DA0\u860B\u679C"
-    prefab: {fileID: 9170095496440369977}
+    prefab: {fileID: 8664185641947377099, guid: 1dbe40d249c5b45fca5b36f7aa2f20e8, type: 3}
     color: Green
     shape: Round
     tags: []
-  - fruitName: 
-    displayName: 
-    prefab: {fileID: 0}
-    color: 
-    shape: 
+  - fruitName: "\u9EC3\u9999\u8549"
+    displayName: "\u9EC3\u9999\u8549"
+    prefab: {fileID: 5323405905394862030, guid: b6b773661300d480686cbb7f2e5b08fa, type: 3}
+    color: Yellow
+    shape: Banana
+    tags: []
+  - fruitName: "\u7D05\u860B\u679C"
+    displayName: "\u7D05\u860B\u679C"
+    prefab: {fileID: 5974301429452221908, guid: 0e1fce6b2d22949e58bd85c050ff3687, type: 3}
+    color: Red
+    shape: Round
+    tags: []
+  - fruitName: "\u85CD\u8393"
+    displayName: "\u85CD\u8393"
+    prefab: {fileID: 7241457585829368043, guid: 6219a10a25cf8402d9b3f90d4ede051a, type: 3}
+    color: Blue
+    shape: berry
+    tags: []
+  - fruitName: "\u7DA0\u8461\u8404"
+    displayName: "\u7DA0\u8461\u8404"
+    prefab: {fileID: 231423354753973474, guid: 8751ba2654b424326b6a8c4ed8b5ad7d, type: 3}
+    color: Green
+    shape: Grape
     tags: []
 --- !u!4 &1539469216
 Transform:
@@ -685,6 +795,90 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1738605064
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1738605066}
+  - component: {fileID: 1738605065}
+  m_Layer: 0
+  m_Name: Background
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!212 &1738605065
+SpriteRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1738605064}
+  m_Enabled: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 0
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 0
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: -10
+  m_Sprite: {fileID: 21300000, guid: ba0de5d4626ce4f09b90a5368153f83c, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_FlipX: 0
+  m_FlipY: 0
+  m_DrawMode: 0
+  m_Size: {x: 1, y: 1}
+  m_AdaptiveModeThreshold: 0.5
+  m_SpriteTileMode: 0
+  m_WasSpriteAssigned: 1
+  m_MaskInteraction: 0
+  m_SpriteSortPoint: 0
+--- !u!4 &1738605066
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1738605064}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.5, y: 0.5, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -742,8 +936,9 @@ MonoBehaviour:
   titleSignSprite: {fileID: 21300000, guid: faca23e4e04f842b2a753e915377e8cc, type: 3}
   instructionButtonSprite: {fileID: 21300000, guid: 7e1c74663a8584937a11355c80f75831, type: 3}
   startButtonSprite: {fileID: 21300000, guid: 5a2b64030026841849308a8bab9431ec, type: 3}
-  instructionPanelSprite: {fileID: 10911, guid: 0000000000000000f000000000000000, type: 0}
-  fruitDecorationSprites: []
+  instructionPanelSprite: {fileID: 21300000, guid: 1df8b4aae8aba48c18ace17ba485b4bd, type: 3}
+  levelIntroBackgroundSprite: {fileID: 21300000, guid: 1df8b4aae8aba48c18ace17ba485b4bd, type: 3}
+  levelIntroStartButtonSprite: {fileID: 21300000, guid: 5a2b64030026841849308a8bab9431ec, type: 3}
   score: 0
   maxClicks: 5
   requiredHits: 5
@@ -751,76 +946,6 @@ MonoBehaviour:
   maxMistakes: 1
   health: 1
   Accuracy: 0
---- !u!1001 &9170095496440369976
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 1433547243114967645, guid: 1dbe40d249c5b45fca5b36f7aa2f20e8, type: 3}
-      propertyPath: m_Sprite
-      value: 
-      objectReference: {fileID: 21300000, guid: 2e0034fcba394453bb92b6525aab7de1, type: 3}
-    - target: {fileID: 1433547243114967645, guid: 1dbe40d249c5b45fca5b36f7aa2f20e8, type: 3}
-      propertyPath: m_WasSpriteAssigned
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 3040532401126905713, guid: 1dbe40d249c5b45fca5b36f7aa2f20e8, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3040532401126905713, guid: 1dbe40d249c5b45fca5b36f7aa2f20e8, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3040532401126905713, guid: 1dbe40d249c5b45fca5b36f7aa2f20e8, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3040532401126905713, guid: 1dbe40d249c5b45fca5b36f7aa2f20e8, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 3040532401126905713, guid: 1dbe40d249c5b45fca5b36f7aa2f20e8, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3040532401126905713, guid: 1dbe40d249c5b45fca5b36f7aa2f20e8, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3040532401126905713, guid: 1dbe40d249c5b45fca5b36f7aa2f20e8, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3040532401126905713, guid: 1dbe40d249c5b45fca5b36f7aa2f20e8, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3040532401126905713, guid: 1dbe40d249c5b45fca5b36f7aa2f20e8, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3040532401126905713, guid: 1dbe40d249c5b45fca5b36f7aa2f20e8, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8664185641947377099, guid: 1dbe40d249c5b45fca5b36f7aa2f20e8, type: 3}
-      propertyPath: m_Name
-      value: fruit_apple_green
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 1dbe40d249c5b45fca5b36f7aa2f20e8, type: 3}
---- !u!1 &9170095496440369977 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8664185641947377099, guid: 1dbe40d249c5b45fca5b36f7aa2f20e8, type: 3}
-  m_PrefabInstance: {fileID: 9170095496440369976}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -831,4 +956,5 @@ SceneRoots:
   - {fileID: 1341185422}
   - {fileID: 622967260}
   - {fileID: 1539469216}
-  - {fileID: 9170095496440369976}
+  - {fileID: 1738605066}
+  - {fileID: 1172940197}
