@@ -207,16 +207,40 @@ public class GameManager : MonoBehaviour
 
 
 
-    public void Success(Target target) // hit
+    // public void Success(Target target) // hit
+    // {
+    //     target.handled = true;
+    //     AddScore(100);
+    //     HitCount++;
+    //     roundHits++;
+    //     RecordTargetHit(target.fruitName);
+    //     ConsumeShootableTarget();
+    //     UpdateAcc();
+    //     Debug.Log("Success, Score = " + score);
+    //     Destroy(target.gameObject);
+    //     CheckRoundEnd();
+    // }
+    public void Success(Target target)
     {
+        if (!requiredHitsByFruit.ContainsKey(target.fruitName))
+        {
+            Debug.LogWarning($"Clicked Go but not required fruit: {target.fruitName}");
+            Punish(target);
+            return;
+        }
+
         target.handled = true;
         AddScore(100);
         HitCount++;
         roundHits++;
+
         RecordTargetHit(target.fruitName);
+
         ConsumeShootableTarget();
         UpdateAcc();
-        Debug.Log("Success, Score = " + score);
+
+        Debug.Log($"Success: {target.fruitName} {currentHitsByFruit[target.fruitName]}/{requiredHitsByFruit[target.fruitName]}");
+
         Destroy(target.gameObject);
         CheckRoundEnd();
     }
@@ -799,19 +823,37 @@ public class GameManager : MonoBehaviour
         requiredHits = totalRequiredHits;
     }
 
+    // private void RecordTargetHit(string fruitName)
+    // {
+    //     if (!requiredHitsByFruit.ContainsKey(fruitName))
+    //     {
+    //         return;
+    //     }
+
+    //     if (currentHitsByFruit[fruitName] >= requiredHitsByFruit[fruitName])
+    //     {
+    //         return;
+    //     }
+
+    //     currentHitsByFruit[fruitName]++;
+    // }
+
     private void RecordTargetHit(string fruitName)
     {
         if (!requiredHitsByFruit.ContainsKey(fruitName))
         {
+            Debug.LogWarning($"No requirement for fruit: {fruitName}");
             return;
         }
 
-        if (currentHitsByFruit[fruitName] >= requiredHitsByFruit[fruitName])
+        if (!currentHitsByFruit.ContainsKey(fruitName))
         {
-            return;
+            currentHitsByFruit[fruitName] = 0;
         }
 
         currentHitsByFruit[fruitName]++;
+
+        Debug.Log($"Hit {fruitName}: {currentHitsByFruit[fruitName]}/{requiredHitsByFruit[fruitName]}");
     }
 
     private int GetRemainingRequiredHitCount()
@@ -835,9 +877,28 @@ public class GameManager : MonoBehaviour
         return remaining;
     }
 
+    // private bool AreTargetRequirementsMet()
+    // {
+    //     return GetRemainingRequiredHitCount() <= 0;
+    // }
     private bool AreTargetRequirementsMet()
     {
-        return GetRemainingRequiredHitCount() <= 0;
+        foreach (var requirement in requiredHitsByFruit)
+        {
+            string fruitName = requirement.Key;
+            int required = requirement.Value;
+
+            int current = currentHitsByFruit.ContainsKey(fruitName)
+                ? currentHitsByFruit[fruitName]
+                : 0;
+
+            if (current < required)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private string GetTargetRequirementText()
