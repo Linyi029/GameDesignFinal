@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 5752312759713921503}
   - component: {fileID: 6371421476520498481}
   m_Layer: 0
-  m_Name: GameObject
+  m_Name: StudentCarry
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

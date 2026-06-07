@@ -56,7 +56,8 @@ public class Spawner : MonoBehaviour
     private readonly List<GameObject> currentTargets = new List<GameObject>();
 
     // 三條固定飛行軌道，由上而下。
-    private readonly float[] lanes = { 2f, 0f, -2f };
+    // private readonly float[] lanes = { 2f, 0f, -2f };
+    private readonly float[] lanes = { 4f, 2f, -3f };
 
     void Start()
     {
@@ -145,7 +146,18 @@ public class Spawner : MonoBehaviour
             ? Random.Range(minTargetsPerWave, maxTargetsPerWave + 1)
             : 1;
         
-        int goIndex = spawnMultipleTargets ? Random.Range(0, targetCount) : -1;
+        // int goIndex = spawnMultipleTargets ? Random.Range(0, targetCount) : -1;
+        int goIndex = -1;
+
+        if (spawnMultipleTargets)
+        {
+            bool hasGo = Random.value > noGoChance;
+
+            if (hasGo)
+            {
+                goIndex = Random.Range(0, targetCount);
+            }
+        }
         List<float> usedLanes = new List<float>();
 
         for (int i = 0; i < targetCount; i++)
@@ -259,6 +271,46 @@ public class Spawner : MonoBehaviour
         return lanes[usedLanes.Count % lanes.Length];
     }
 
+    
+    private void ApplyLaneSorting(GameObject targetObject, float lane)
+    {
+        int studentOrder;
+        int fruitOrder;
+
+        if (lane > 3f)          // 後排
+        {
+            studentOrder = 5;
+            fruitOrder = 6;
+        }
+        else if (lane > -2.4f)  // 中排
+        {
+            studentOrder = 25;
+            fruitOrder = 26;
+        }
+        else                    // 前排
+        {
+            studentOrder = 45;
+            fruitOrder = 46;
+        }
+
+        // 改整個 prefab 裡所有 SpriteRenderer
+        SpriteRenderer[] renderers =
+            targetObject.GetComponentsInChildren<SpriteRenderer>();
+
+        foreach (SpriteRenderer sr in renderers)
+        {
+            if (sr.gameObject == targetObject)
+            {
+                sr.sortingOrder = fruitOrder;
+            }
+            else
+            {
+                sr.sortingOrder = studentOrder;
+            }
+
+            Debug.Log($"{sr.gameObject.name} sortingOrder = {sr.sortingOrder}");
+        }
+    }
     void SpawnTarget(TargetType targetType, float spawnLane, FruitOption fruitOption)
     {
         // 隨機左右
@@ -305,7 +357,7 @@ public class Spawner : MonoBehaviour
         target.fruitName = fruitOption.fruitName;
         target.moveDirection = moveDir;
         target.speed = baseTargetSpeed * speedMultiplier;
-        
+        ApplyLaneSorting(currentTarget, spawnLane);
 
         currentTargets.Add(currentTarget);
     }
