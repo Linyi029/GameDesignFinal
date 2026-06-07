@@ -3,7 +3,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using System.Collections.Generic;
 using System.Text;
-
+using TMPro;
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
@@ -88,8 +88,14 @@ public class GameManager : MonoBehaviour
     private int MissCount = 0;
     private int CorrectReject = 0;
     private int FalseAlarm = 0;
+    
 
     [SerializeField] private float Accuracy = 0f;
+    [Header("Game HUD")]
+    public TMP_Text clicksText;
+    public TMP_Text healthText;
+    public TMP_Text targetProgressText;
+    // public TMP_Text roundText;
 
 
 
@@ -205,6 +211,68 @@ public class GameManager : MonoBehaviour
         return Accuracy;
     }
 
+    // private void UpdateHud()
+    // {
+    //     if (clicksText != null)
+    //     {
+    //         clicksText.text = $"Shots：{maxClicks}";
+    //     }
+
+    //     if (healthText != null)
+    //     {
+    //         healthText.text = $"HP：{health}";
+    //     }
+
+    //     if (targetProgressText != null)
+    //     {
+    //         StringBuilder sb = new StringBuilder();
+    //         sb.AppendLine("Progress");
+
+    //         foreach (var requirement in requiredHitsByFruit)
+    //         {
+    //             string fruitName = requirement.Key;
+    //             int required = requirement.Value;
+
+    //             int current = currentHitsByFruit.ContainsKey(fruitName)
+    //                 ? currentHitsByFruit[fruitName]
+    //                 : 0;
+
+    //             sb.AppendLine($"{fruitName}：{current} / {required}");
+    //         }
+
+    //         targetProgressText.text = sb.ToString();
+    //     }
+    // }
+    private void UpdateHud()
+    {
+        if (healthText != null)
+            healthText.text = $"❤️ {health}";
+
+        if (clicksText != null)
+            clicksText.text = $"🖱 {remainingClicks}";
+
+        // if (roundText != null)
+        //     roundText.text = $"第 {currentRound} 關";
+
+        if (targetProgressText != null)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            foreach (var requirement in requiredHitsByFruit)
+            {
+                string fruitName = requirement.Key;
+
+                int current =
+                    currentHitsByFruit.ContainsKey(fruitName)
+                    ? currentHitsByFruit[fruitName]
+                    : 0;
+
+                sb.Append($"{fruitName} {current}/{requirement.Value}   ");
+            }
+
+            targetProgressText.text = sb.ToString();
+        }
+    }
 
 
     // public void Success(Target target) // hit
@@ -238,6 +306,7 @@ public class GameManager : MonoBehaviour
 
         ConsumeShootableTarget();
         UpdateAcc();
+        UpdateHud();
 
         Debug.Log($"Success: {target.fruitName} {currentHitsByFruit[target.fruitName]}/{requiredHitsByFruit[target.fruitName]}");
 
@@ -262,6 +331,7 @@ public class GameManager : MonoBehaviour
         FalseAlarm++;
         LoseHealth();
         UpdateAcc();
+        UpdateHud();
         Debug.Log("Punish, Score = " + score);
         Destroy(target.gameObject);
         CheckRoundEnd();
@@ -275,6 +345,7 @@ public class GameManager : MonoBehaviour
         ConsumeShootableTarget();
         LoseHealth();
         UpdateAcc();
+        UpdateHud();
         Debug.Log("Miss, Score = " + score);
         Destroy(target.gameObject);
         CheckRoundEnd();
@@ -287,6 +358,7 @@ public class GameManager : MonoBehaviour
         ConsumeShootableTarget();
         //LoseHealth();
         UpdateAcc();
+        UpdateHud();
         Debug.Log("Miss, Score = " + score);
         Destroy(target.gameObject);
         CheckRoundEnd();
@@ -310,6 +382,7 @@ public class GameManager : MonoBehaviour
         }
 
         GenerateRoundTargetRequirements();
+        UpdateHud();
 
         if (showStartMenu && startMenuRoot != null)
         {
