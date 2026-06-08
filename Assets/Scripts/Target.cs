@@ -57,7 +57,9 @@ public class Target : MonoBehaviour
             }
             else
             {
-                GameManager.Instance.CorrectRej(this); //正確拒絕
+                //GameManager.Instance.CorrectRej(this); //正確拒絕
+                handled = true;
+                Destroy(gameObject);
             }
         }
     }

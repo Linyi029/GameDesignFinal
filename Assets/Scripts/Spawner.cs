@@ -119,18 +119,15 @@ public class Spawner : MonoBehaviour
         while (true)
         {
             RemoveDestroyedTargets();
-
             if (currentTargets.Count == 0)
             {
-                
+                GameManager.Instance.FinishCurrentWaveIfNoClick();
+
                 SpawnWave();
 
-                float waitTime =
-                    Random.Range(minSpawnWait, maxSpawnWait);
-
+                float waitTime = Random.Range(minSpawnWait, maxSpawnWait);
                 yield return new WaitForSeconds(waitTime);
             }
-
             yield return null;
         }
     }

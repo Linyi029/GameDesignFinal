@@ -57,6 +57,7 @@ public class GameManager : MonoBehaviour
     private bool gameStarted = false;
 
     public TrayFollower trayFollower;
+    private bool currentRunFinished = false;
 
 
     [SerializeField] private int score = 0;
@@ -101,6 +102,7 @@ public class GameManager : MonoBehaviour
     [System.Serializable]
     public class RunRecord
     {
+        public string difficulty;
         public float Time;
         public int target_n;
         public int target;      // 0/1 是否有 Go
@@ -229,38 +231,6 @@ public class GameManager : MonoBehaviour
         return Accuracy;
     }
 
-    // private void UpdateHud()
-    // {
-    //     if (clicksText != null)
-    //     {
-    //         clicksText.text = $"Shots：{maxClicks}";
-    //     }
-
-    //     if (healthText != null)
-    //     {
-    //         healthText.text = $"HP：{health}";
-    //     }
-
-    //     if (targetProgressText != null)
-    //     {
-    //         StringBuilder sb = new StringBuilder();
-    //         sb.AppendLine("Progress");
-
-    //         foreach (var requirement in requiredHitsByFruit)
-    //         {
-    //             string fruitName = requirement.Key;
-    //             int required = requirement.Value;
-
-    //             int current = currentHitsByFruit.ContainsKey(fruitName)
-    //                 ? currentHitsByFruit[fruitName]
-    //                 : 0;
-
-    //             sb.AppendLine($"{fruitName}：{current} / {required}");
-    //         }
-
-    //         targetProgressText.text = sb.ToString();
-    //     }
-    // }
     private void UpdateHud()
     {
         if (healthText != null)
@@ -293,19 +263,6 @@ public class GameManager : MonoBehaviour
     }
 
 
-    // public void Success(Target target) // hit
-    // {
-    //     target.handled = true;
-    //     AddScore(100);
-    //     HitCount++;
-    //     roundHits++;
-    //     RecordTargetHit(target.fruitName);
-    //     ConsumeShootableTarget();
-    //     UpdateAcc();
-    //     Debug.Log("Success, Score = " + score);
-    //     Destroy(target.gameObject);
-    //     CheckRoundEnd();
-    // }
     public void Success(Target target)
     {
         if (!requiredHitsByFruit.ContainsKey(target.fruitName))
@@ -339,9 +296,8 @@ public class GameManager : MonoBehaviour
         CorrectReject++;
         UpdateAcc();
         Debug.Log("CorrectReject, Score = " + score);
-        FinishRun(target, 0, false);
+        // FinishRun(target, 0, false);
         Destroy(target.gameObject);
-        FinishRun(target, 0, false);
     }
 
     public void Punish(Target target) //false alarm
@@ -353,6 +309,7 @@ public class GameManager : MonoBehaviour
         UpdateAcc();
         UpdateHud();
         Debug.Log("Punish, Score = " + score);
+        FinishRun(target, 1, true);
         Destroy(target.gameObject);
         CheckRoundEnd();
     }
@@ -367,8 +324,8 @@ public class GameManager : MonoBehaviour
         UpdateAcc();
         UpdateHud();
         Debug.Log("Miss, Score = " + score);
-        Destroy(target.gameObject);
         FinishRun(target, 2, false);
+        Destroy(target.gameObject);
         CheckRoundEnd();
     }
     public void Miss_Overtime(Target target)
@@ -381,8 +338,8 @@ public class GameManager : MonoBehaviour
         UpdateAcc();
         UpdateHud();
         Debug.Log("Miss, Score = " + score);
-        Destroy(target.gameObject);
         FinishRun(target, 2, false);
+        Destroy(target.gameObject);
         CheckRoundEnd();
     }
 
@@ -924,20 +881,6 @@ public class GameManager : MonoBehaviour
         requiredHits = totalRequiredHits;
     }
 
-    // private void RecordTargetHit(string fruitName)
-    // {
-    //     if (!requiredHitsByFruit.ContainsKey(fruitName))
-    //     {
-    //         return;
-    //     }
-
-    //     if (currentHitsByFruit[fruitName] >= requiredHitsByFruit[fruitName])
-    //     {
-    //         return;
-    //     }
-
-    //     currentHitsByFruit[fruitName]++;
-    // }
 
     private void RecordTargetHit(string fruitName)
     {
@@ -978,10 +921,6 @@ public class GameManager : MonoBehaviour
         return remaining;
     }
 
-    // private bool AreTargetRequirementsMet()
-    // {
-    //     return GetRemainingRequiredHitCount() <= 0;
-    // }
     private bool AreTargetRequirementsMet()
     {
         foreach (var requirement in requiredHitsByFruit)
@@ -1002,55 +941,14 @@ public class GameManager : MonoBehaviour
         return true;
     }
 
-    private string GetTargetRequirementText()
-    {
-        if (spawner == null)
-        {
-            return "指定水果：依照畫面上的 Go target。";
-        }
+    
 
-        List<FruitOption> targetFruits = spawner.GetCurrentTargetFruits();
-        if (targetFruits == null || targetFruits.Count == 0)
-        {
-            return "指定水果：依照畫面上的 Go target。";
-        }
-
-        StringBuilder builder = new StringBuilder();
-        builder.AppendLine("指定水果：");
-
-        foreach (FruitOption fruit in targetFruits)
-        {
-            int count = requiredHitsByFruit.ContainsKey(fruit.fruitName)
-                ? requiredHitsByFruit[fruit.fruitName]
-                : 0;
-
-            if (count <= 0)
-            {
-                continue;
-            }
-
-            builder.AppendLine($"{GetFruitDisplayName(fruit)} x {count}");
-        }
-
-        return builder.ToString().TrimEnd();
-    }
-
-    private string GetFruitDisplayName(FruitOption fruit)
-    {
-        if (fruit == null)
-        {
-            return "未知水果";
-        }
-
-        return string.IsNullOrEmpty(fruit.displayName)
-            ? fruit.fruitName
-            : fruit.displayName;
-    }
     //更改通關條件：'生命值條件'，注意GO/NOGO OBJ情況
     public void BeginRun(int targetCount, int hasTarget)
     {
         currentRun = new RunRecord
         {
+            difficulty = spawner.GetCurrentDifficulty().ToString(),
             Time = Time.time - levelStartTime,
             target_n = targetCount,
             target = hasTarget,
@@ -1061,6 +959,7 @@ public class GameManager : MonoBehaviour
         };
 
         currentGoTarget = null;
+        currentRunFinished = false;
     }
 
     public bool IsInsideActionZonePublic(Target target)
@@ -1080,7 +979,7 @@ public class GameManager : MonoBehaviour
 
     private void FinishRun(Target target, int hitCode, bool clicked)
     {
-        if (currentRun == null) return;
+        if (currentRun == null|| currentRunFinished) return;
 
         currentRun.click = clicked ? 1 : 0;
         currentRun.hit = hitCode;
@@ -1099,23 +998,9 @@ public class GameManager : MonoBehaviour
         }
 
         runRecords.Add(currentRun);
-        currentRun = null;
+        currentRunFinished = true;
+       
     }
-    // private void ExportCsv()
-    // {
-    //     string path = Application.persistentDataPath + "/run_log.csv";
-    //     StringBuilder sb = new StringBuilder();
-
-    //     sb.AppendLine("Time,target_n,target,zone_time,click,hit,RT");
-
-    //     foreach (RunRecord r in runRecords)
-    //     {
-    //         sb.AppendLine($"{r.Time},{r.target_n},{r.target},{r.zone_time},{r.click},{r.hit},{r.RT}");
-    //     }
-
-    //     System.IO.File.WriteAllText(path, sb.ToString());
-    //     Debug.Log("CSV exported: " + path);
-    // }
     private void ExportCsv()
     {
         string folderPath = Application.dataPath + "/CSV";
@@ -1127,16 +1012,57 @@ public class GameManager : MonoBehaviour
 
         string path = folderPath + "/run_log.csv";
 
+        // 第一次建立檔案時寫 header
+        if (!System.IO.File.Exists(path))
+        {
+            System.IO.File.WriteAllText(
+                path,
+                "difficulty,Time,target_n,target,zone_time,click,hit,RT\n"
+            );
+        }
+
         StringBuilder sb = new StringBuilder();
-        sb.AppendLine("Time,target_n,target,zone_time,click,hit,RT");
 
         foreach (RunRecord r in runRecords)
         {
-            sb.AppendLine($"{r.Time},{r.target_n},{r.target},{r.zone_time},{r.click},{r.hit},{r.RT}");
+            sb.AppendLine(
+                $"{r.difficulty}," +
+                $"{r.Time}," +
+                $"{r.target_n}," +
+                $"{r.target}," +
+                $"{r.zone_time}," +
+                $"{r.click}," +
+                $"{r.hit}," +
+                $"{r.RT}"
+            );
         }
 
-        System.IO.File.WriteAllText(path, sb.ToString());
-        Debug.Log("CSV exported: " + path);
+        System.IO.File.AppendAllText(path, sb.ToString());
+
+        Debug.Log($"CSV appended: {path}");
+
+        // 清空避免下一關重複寫入
+        runRecords.Clear();
+    }
+    public void FinishCurrentWaveIfNoClick()
+    {
+        if (currentRun == null || currentRunFinished) return;
+
+        if (currentRun.target == 1)
+        {
+            // 有 Go 但沒有成功點擊
+            currentRun.click = 0;
+            currentRun.hit = 2; // miss
+        }
+        else
+        {
+            // 沒有 Go 且沒點擊
+            currentRun.click = 0;
+            currentRun.hit = 0; // correct reject
+        }
+
+        runRecords.Add(currentRun);
+        currentRunFinished = true;
     }
 
 
