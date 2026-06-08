@@ -58,7 +58,20 @@ public class GameManager : MonoBehaviour
 
     public TrayFollower trayFollower;
     private bool currentRunFinished = false;
+    [Header("HUD Icon Prefabs")]
+    public Transform healthIconContainer;
+    public GameObject healthIconPrefab;
+    public GameObject clickStatusRoot;
 
+
+    private readonly List<GameObject> healthIconObjects = new List<GameObject>();
+
+    private Dictionary<string, TMP_Text> progressTexts =
+    new Dictionary<string, TMP_Text>();
+    public Image clickSingleIcon;
+    public TMP_Text clickCountText;
+
+  
 
     [SerializeField] private int score = 0;
 
@@ -96,7 +109,7 @@ public class GameManager : MonoBehaviour
     public TMP_Text clicksText;
     public TMP_Text healthText;
     public TMP_Text targetProgressText;
-    // public TMP_Text roundText;
+    
 
 
     [System.Serializable]
@@ -116,12 +129,15 @@ public class GameManager : MonoBehaviour
     private float levelStartTime;
     private RunRecord currentRun;
     private Target currentGoTarget;
+    public Transform targetProgressContainer;
+    public GameObject targetProgressPrefab;
 
 
 
     void Awake()
     {
         Instance = this;
+        SetHudVisible(false);
         ResetRoundHealth();
 
         if (spawner == null)
@@ -231,36 +247,130 @@ public class GameManager : MonoBehaviour
         return Accuracy;
     }
 
-    private void UpdateHud()
+    // private void SetHudVisible(bool visible)
+    // {
+    //     if (healthText != null)
+    //         healthText.gameObject.SetActive(visible);
+
+    //     if (clickStatusRoot != null)
+    //     clickStatusRoot.SetActive(visible);
+
+    //     if (targetProgressText != null)
+    //         targetProgressText.gameObject.SetActive(visible);
+    // }
+    private void SetHudVisible(bool visible)
     {
-        if (healthText != null)
-            healthText.text = $"❤️ {health}";
+        if (healthIconContainer != null)
+            healthIconContainer.gameObject.SetActive(visible);
 
-        if (clicksText != null)
-            clicksText.text = $"🖱 {remainingClicks}";
+        if (clickStatusRoot != null)
+            clickStatusRoot.SetActive(visible);
 
-        // if (roundText != null)
-        //     roundText.text = $"第 {currentRound} 關";
+        if (targetProgressContainer != null)
+            targetProgressContainer.gameObject.SetActive(visible);
+    }
+    private void BuildTargetProgressUI()
+    {
+        foreach (Transform child in targetProgressContainer)
+            Destroy(child.gameObject);
 
-        if (targetProgressText != null)
+        progressTexts.Clear();
+
+        foreach (var requirement in requiredHitsByFruit)
         {
-            StringBuilder sb = new StringBuilder();
+            if (requirement.Value <= 0) continue;
+            string fruitName = requirement.Key;
 
-            foreach (var requirement in requiredHitsByFruit)
-            {
-                string fruitName = requirement.Key;
+            GameObject item =
+                Instantiate(
+                    targetProgressPrefab,
+                    targetProgressContainer
+                );
 
-                int current =
-                    currentHitsByFruit.ContainsKey(fruitName)
-                    ? currentHitsByFruit[fruitName]
-                    : 0;
+            Image icon =
+                item.transform.Find("FruitIcon")
+                .GetComponent<Image>();
 
-                sb.Append($"{fruitName} {current}/{requirement.Value}   ");
-            }
+            TMP_Text text =
+                item.transform.Find("CountText")
+                .GetComponent<TMP_Text>();
 
-            targetProgressText.text = sb.ToString();
+            FruitOption fruit =
+                DifficultyManager.Instance
+                .GetFruitOption(fruitName);
+
+            SpriteRenderer sr =
+                fruit.prefab.GetComponent<SpriteRenderer>();
+
+            icon.sprite = sr.sprite;
+
+            text.text = $"0/{requirement.Value}";
+
+            progressTexts[fruitName] = text;
         }
     }
+
+    
+    private void BuildIcons(
+        Transform container,
+        GameObject prefab,
+        int maxCount,
+        List<GameObject> iconObjects
+    )
+    {
+        if (container == null || prefab == null) return;
+
+        foreach (Transform child in container)
+            Destroy(child.gameObject);
+
+        iconObjects.Clear();
+
+        for (int i = 0; i < maxCount; i++)
+        {
+            GameObject icon = Instantiate(prefab, container);
+            iconObjects.Add(icon);
+        }
+    }
+
+    private void SetIconCount(List<GameObject> iconObjects, int currentCount)
+    {
+        for (int i = 0; i < iconObjects.Count; i++)
+        {
+            if (iconObjects[i] != null)
+                iconObjects[i].SetActive(i < currentCount);
+        }
+    }
+  
+    
+    private void UpdateHud()
+    {
+        SetIconCount(healthIconObjects, health);
+        if (clickCountText != null)
+            clickCountText.text = $"{remainingClicks}/{maxClicks}";
+
+        UpdateTargetProgressUI();
+    }
+
+    private void UpdateTargetProgressUI()
+    {
+        foreach (var requirement in requiredHitsByFruit)
+        {
+            string fruitName = requirement.Key;
+
+            if (!progressTexts.ContainsKey(fruitName))
+                continue;
+
+            int current =
+                currentHitsByFruit.ContainsKey(fruitName)
+                ? currentHitsByFruit[fruitName]
+                : 0;
+
+            progressTexts[fruitName].text =
+                $"{current}/{requirement.Value}";
+        }
+    }
+
+
 
 
     public void Success(Target target)
@@ -361,11 +471,24 @@ public class GameManager : MonoBehaviour
             spawner.SetCurrentDifficulty(currentDifficulty);
         }
 
+        // GenerateRoundTargetRequirements();
+        // BuildTargetProgressUI();
+        // UpdateHud();
         GenerateRoundTargetRequirements();
+
+        BuildIcons(
+            healthIconContainer,
+            healthIconPrefab,
+            maxMistakes,
+            healthIconObjects
+        );
+
+
+        BuildTargetProgressUI();
         UpdateHud();
 
         if (showStartMenu && startMenuRoot != null)
-        {
+        {   
             ShowLevelIntroPanel(currentDifficulty);
             return;
         }
@@ -374,7 +497,9 @@ public class GameManager : MonoBehaviour
     }
 
     private void BeginGameplay()
-    {
+    {   
+        SetHudVisible(true);
+        UpdateHud();
         levelStartTime = Time.time;
         runRecords.Clear();
         gameStarted = true ;
@@ -608,6 +733,8 @@ public class GameManager : MonoBehaviour
         }
 
         GenerateRoundTargetRequirements();
+        BuildTargetProgressUI();
+        UpdateHud();
 
         EnsureStartMenuRootExists();
 
@@ -617,6 +744,7 @@ public class GameManager : MonoBehaviour
 
     private void ShowLevelIntroPanel(Difficulty difficulty)
     {
+        SetHudVisible(false);
         if (levelIntroPanel != null)
         {
             Destroy(levelIntroPanel);
@@ -797,8 +925,8 @@ public class GameManager : MonoBehaviour
 
         Debug.Log("Health survived. Stage cleared. Increasing difficulty.");
         ExportCsv();
-        ResetRoundHealth();
-        StartGame();
+        // ResetRoundHealth();
+        // StartGame();
         PrepareNextLevelIntro();
     }
 
@@ -879,6 +1007,7 @@ public class GameManager : MonoBehaviour
         }
 
         requiredHits = totalRequiredHits;
+        
     }
 
 

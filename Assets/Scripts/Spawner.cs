@@ -144,7 +144,6 @@ public class Spawner : MonoBehaviour
             ? Random.Range(minTargetsPerWave, maxTargetsPerWave + 1)
             : 1;
         
-        // int goIndex = spawnMultipleTargets ? Random.Range(0, targetCount) : -1;
         int goIndex = -1;
 
         if (spawnMultipleTargets)
