@@ -122,6 +122,7 @@ public class Spawner : MonoBehaviour
 
             if (currentTargets.Count == 0)
             {
+                
                 SpawnWave();
 
                 float waitTime =
@@ -158,6 +159,16 @@ public class Spawner : MonoBehaviour
                 goIndex = Random.Range(0, targetCount);
             }
         }
+
+         bool hasTarget = goIndex >= 0;
+
+        if (GameManager.Instance != null)
+            {
+                GameManager.Instance.BeginRun(
+                    targetCount,
+                    hasTarget ? 1 : 0
+                );
+            }
         List<float> usedLanes = new List<float>();
 
         for (int i = 0; i < targetCount; i++)

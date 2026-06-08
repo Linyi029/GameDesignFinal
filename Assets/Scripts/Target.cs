@@ -24,10 +24,29 @@ public class Target : MonoBehaviour
 
     [Tooltip("target 超過這個 X 距離後，會被判定為 miss 或 correct rejection。")]
     public float destroyXLimit = 11f;
+    public float zoneEnterTime = -1f;
+    public float totalZoneTime = 0f;
+    public bool wasInZone = false;
 
     void Update()
     {
         transform.Translate(moveDirection * speed * Time.deltaTime);
+        bool inZone = GameManager.Instance.IsInsideActionZonePublic(this);
+
+        if (inZone && !wasInZone)
+        {
+            zoneEnterTime = Time.time;
+            wasInZone = true;
+
+            if (type == TargetType.Go)
+                GameManager.Instance.RegisterGoEnterZone(this);
+        }
+
+        if (!inZone && wasInZone)
+        {
+            totalZoneTime += Time.time - zoneEnterTime;
+            wasInZone = false;
+        }
 
 
         if (!handled && Mathf.Abs(transform.position.x) > destroyXLimit)

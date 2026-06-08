@@ -98,6 +98,24 @@ public class GameManager : MonoBehaviour
     // public TMP_Text roundText;
 
 
+    [System.Serializable]
+    public class RunRecord
+    {
+        public float Time;
+        public int target_n;
+        public int target;      // 0/1 是否有 Go
+        public float zone_time;
+        public int click;       // 0/1
+        public int hit;         // 0 correct reject, 1 error, 2 miss, 3 hit
+        public float RT;
+    }
+
+    private List<RunRecord> runRecords = new List<RunRecord>();
+    private float levelStartTime;
+    private RunRecord currentRun;
+    private Target currentGoTarget;
+
+
 
     void Awake()
     {
@@ -309,7 +327,7 @@ public class GameManager : MonoBehaviour
         UpdateHud();
 
         Debug.Log($"Success: {target.fruitName} {currentHitsByFruit[target.fruitName]}/{requiredHitsByFruit[target.fruitName]}");
-
+        FinishRun(target, 3, true);
         Destroy(target.gameObject);
         CheckRoundEnd();
     }
@@ -321,7 +339,9 @@ public class GameManager : MonoBehaviour
         CorrectReject++;
         UpdateAcc();
         Debug.Log("CorrectReject, Score = " + score);
+        FinishRun(target, 0, false);
         Destroy(target.gameObject);
+        FinishRun(target, 0, false);
     }
 
     public void Punish(Target target) //false alarm
@@ -348,6 +368,7 @@ public class GameManager : MonoBehaviour
         UpdateHud();
         Debug.Log("Miss, Score = " + score);
         Destroy(target.gameObject);
+        FinishRun(target, 2, false);
         CheckRoundEnd();
     }
     public void Miss_Overtime(Target target)
@@ -361,8 +382,10 @@ public class GameManager : MonoBehaviour
         UpdateHud();
         Debug.Log("Miss, Score = " + score);
         Destroy(target.gameObject);
+        FinishRun(target, 2, false);
         CheckRoundEnd();
     }
+
     public void AddScore(int amount)
     {
         score += amount;
@@ -395,6 +418,8 @@ public class GameManager : MonoBehaviour
 
     private void BeginGameplay()
     {
+        levelStartTime = Time.time;
+        runRecords.Clear();
         gameStarted = true ;
         waitingForLevelIntro = false;
         roundEnded = false;
@@ -786,6 +811,7 @@ public class GameManager : MonoBehaviour
         {
             roundEnded = true;
             Debug.Log("Health depleted. Game over.");
+            ExportCsv();
             Time.timeScale = 0f;
             return;
         }
@@ -795,6 +821,7 @@ public class GameManager : MonoBehaviour
             if (remainingClicks <= 0)
             {
                 Debug.Log($"關卡尚未完成：尚需 {GetRemainingRequiredHitCount()} 個指定水果。請繼續嘗試。\n目前生命值 {health}/{maxMistakes}。");
+                ExportCsv();
             }
             return;
         }
@@ -812,6 +839,7 @@ public class GameManager : MonoBehaviour
         }
 
         Debug.Log("Health survived. Stage cleared. Increasing difficulty.");
+        ExportCsv();
         ResetRoundHealth();
         StartGame();
         PrepareNextLevelIntro();
@@ -1019,6 +1047,97 @@ public class GameManager : MonoBehaviour
             : fruit.displayName;
     }
     //更改通關條件：'生命值條件'，注意GO/NOGO OBJ情況
+    public void BeginRun(int targetCount, int hasTarget)
+    {
+        currentRun = new RunRecord
+        {
+            Time = Time.time - levelStartTime,
+            target_n = targetCount,
+            target = hasTarget,
+            zone_time = 0f,
+            click = 0,
+            hit = -1,
+            RT = -1f
+        };
+
+        currentGoTarget = null;
+    }
+
+    public bool IsInsideActionZonePublic(Target target)
+    {
+        if (ActionZone == null) return false;
+
+        Vector2 p = target.transform.position - ActionZone.position;
+
+        return (p.x * p.x) / (radiusX * radiusX) +
+            (p.y * p.y) / (radiusY * radiusY) <= 1f;
+    }
+
+    public void RegisterGoEnterZone(Target target)
+    {
+        currentGoTarget = target;
+    }
+
+    private void FinishRun(Target target, int hitCode, bool clicked)
+    {
+        if (currentRun == null) return;
+
+        currentRun.click = clicked ? 1 : 0;
+        currentRun.hit = hitCode;
+
+        if (target != null)
+        {
+            float zoneTime = target.totalZoneTime;
+
+            if (target.wasInZone && target.zoneEnterTime >= 0f)
+                zoneTime += Time.time - target.zoneEnterTime;
+
+            currentRun.zone_time = zoneTime;
+
+            if (clicked && target.zoneEnterTime >= 0f)
+                currentRun.RT = Time.time - target.zoneEnterTime;
+        }
+
+        runRecords.Add(currentRun);
+        currentRun = null;
+    }
+    // private void ExportCsv()
+    // {
+    //     string path = Application.persistentDataPath + "/run_log.csv";
+    //     StringBuilder sb = new StringBuilder();
+
+    //     sb.AppendLine("Time,target_n,target,zone_time,click,hit,RT");
+
+    //     foreach (RunRecord r in runRecords)
+    //     {
+    //         sb.AppendLine($"{r.Time},{r.target_n},{r.target},{r.zone_time},{r.click},{r.hit},{r.RT}");
+    //     }
+
+    //     System.IO.File.WriteAllText(path, sb.ToString());
+    //     Debug.Log("CSV exported: " + path);
+    // }
+    private void ExportCsv()
+    {
+        string folderPath = Application.dataPath + "/CSV";
+
+        if (!System.IO.Directory.Exists(folderPath))
+        {
+            System.IO.Directory.CreateDirectory(folderPath);
+        }
+
+        string path = folderPath + "/run_log.csv";
+
+        StringBuilder sb = new StringBuilder();
+        sb.AppendLine("Time,target_n,target,zone_time,click,hit,RT");
+
+        foreach (RunRecord r in runRecords)
+        {
+            sb.AppendLine($"{r.Time},{r.target_n},{r.target},{r.zone_time},{r.click},{r.hit},{r.RT}");
+        }
+
+        System.IO.File.WriteAllText(path, sb.ToString());
+        Debug.Log("CSV exported: " + path);
+    }
 
 
 

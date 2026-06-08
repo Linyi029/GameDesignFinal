@@ -453,4 +453,6 @@ public class DifficultyManager : MonoBehaviour
     {
         return (int)difficulty <= (int)unlockedDifficulty;
     }
+
+    
 }
