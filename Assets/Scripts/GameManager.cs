@@ -63,6 +63,10 @@ public class GameManager : MonoBehaviour
     public GameObject healthIconPrefab;
     public GameObject clickStatusRoot;
 
+    [SerializeField] private GameObject startMenuCanvas;
+    //[SerializeField] private GameObject difficultySelectCanvas;
+    public GameObject difficultySelectCanvas;
+
 
     private readonly List<GameObject> healthIconObjects = new List<GameObject>();
 
@@ -258,6 +262,15 @@ public class GameManager : MonoBehaviour
     //     if (targetProgressText != null)
     //         targetProgressText.gameObject.SetActive(visible);
     // }
+
+    public void ShowDifficultySelect()
+    {
+        if (startMenuRoot != null)
+            startMenuRoot.SetActive(false);
+
+        if (difficultySelectCanvas != null)
+            difficultySelectCanvas.SetActive(true);
+    }
     private void SetHudVisible(bool visible)
     {
         if (healthIconContainer != null)
@@ -443,7 +456,7 @@ public class GameManager : MonoBehaviour
         target.handled = true;
         AddScore(-50);
         MissCount++;
-        ConsumeShootableTarget();
+        //ConsumeShootableTarget();
         //LoseHealth();
         UpdateAcc();
         UpdateHud();
@@ -458,42 +471,46 @@ public class GameManager : MonoBehaviour
         score += amount;
     }
 
+    // public void StartGame()
+    // {
+    //     // 取得玩家已解鎖的最高難度
+    //     Difficulty currentDifficulty = DifficultyManager.Instance != null 
+    //         ? DifficultyManager.Instance.GetUnlockedDifficulty()
+    //         : Difficulty.Easy;
+
+    //     // 設定難度
+    //     if (spawner != null)
+    //     {
+    //         spawner.SetCurrentDifficulty(currentDifficulty);
+    //     }
+
+    //     // GenerateRoundTargetRequirements();
+    //     // BuildTargetProgressUI();
+    //     // UpdateHud();
+    //     GenerateRoundTargetRequirements();
+
+    //     BuildIcons(
+    //         healthIconContainer,
+    //         healthIconPrefab,
+    //         maxMistakes,
+    //         healthIconObjects
+    //     );
+
+
+    //     BuildTargetProgressUI();
+    //     UpdateHud();
+
+    //     if (showStartMenu && startMenuRoot != null)
+    //     {   
+    //         ShowLevelIntroPanel(currentDifficulty);
+    //         return;
+    //     }
+
+    //     BeginGameplay();
+    // }
     public void StartGame()
     {
-        // 取得玩家已解鎖的最高難度
-        Difficulty currentDifficulty = DifficultyManager.Instance != null 
-            ? DifficultyManager.Instance.GetUnlockedDifficulty()
-            : Difficulty.Easy;
-
-        // 設定難度
-        if (spawner != null)
-        {
-            spawner.SetCurrentDifficulty(currentDifficulty);
-        }
-
-        // GenerateRoundTargetRequirements();
-        // BuildTargetProgressUI();
-        // UpdateHud();
-        GenerateRoundTargetRequirements();
-
-        BuildIcons(
-            healthIconContainer,
-            healthIconPrefab,
-            maxMistakes,
-            healthIconObjects
-        );
-
-
-        BuildTargetProgressUI();
-        UpdateHud();
-
-        if (showStartMenu && startMenuRoot != null)
-        {   
-            ShowLevelIntroPanel(currentDifficulty);
-            return;
-        }
-
-        BeginGameplay();
+        StartGameWithDifficulty(Difficulty.Easy);
     }
 
     private void BeginGameplay()
@@ -584,10 +601,61 @@ public class GameManager : MonoBehaviour
 
         GameObject startButton = CreateMenuButton("Start Button", background.transform, startButtonSprite);
         startButton.GetComponent<RectTransform>().anchoredPosition = new Vector2(210f, -160f);
-        startButton.GetComponent<Button>().onClick.AddListener(() => StartGame());
+        //startButton.GetComponent<Button>().onClick.AddListener(() => StartGame());
+        startButton.GetComponent<Button>().onClick.AddListener(() => ShowDifficultySelect());
 
         CreateInstructionPanel(background.transform);
     }
+    public void SelectDifficultyEasy()
+    {
+        StartGameWithDifficulty(Difficulty.Easy);
+    }
+
+    public void SelectDifficultyMedium()
+    {
+        StartGameWithDifficulty(Difficulty.Medium);
+    }
+
+    public void SelectDifficultyHard()
+    {
+        StartGameWithDifficulty(Difficulty.Hard);
+    }
+
+   
+    private void StartGameWithDifficulty(Difficulty selectedDifficulty)
+    {
+        if (difficultySelectCanvas != null)
+            difficultySelectCanvas.SetActive(false);
+
+        if (startMenuRoot != null)
+            startMenuRoot.SetActive(true); // 加這行
+
+        if (spawner != null)
+        {
+            spawner.SetCurrentDifficulty(selectedDifficulty);
+        }
+
+        GenerateRoundTargetRequirements();
+
+        BuildIcons(
+            healthIconContainer,
+            healthIconPrefab,
+            maxMistakes,
+            healthIconObjects
+        );
+
+        BuildTargetProgressUI();
+        UpdateHud();
+
+        if (showStartMenu && startMenuRoot != null)
+        {   
+            ShowLevelIntroPanel(selectedDifficulty);
+            return;
+        }
+
+        BeginGameplay();
+    }
+
 
     private GameObject CreateMenuButton(string objectName, Transform parent, Sprite buttonSprite)
     {
