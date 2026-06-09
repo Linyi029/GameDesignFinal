@@ -456,8 +456,8 @@ public class GameManager : MonoBehaviour
         target.handled = true;
         AddScore(-50);
         MissCount++;
-        //ConsumeShootableTarget();
-        //LoseHealth();
+        // ConsumeShootableTarget();
+        // LoseHealth();
         UpdateAcc();
         UpdateHud();
         Debug.Log("Miss, Score = " + score);

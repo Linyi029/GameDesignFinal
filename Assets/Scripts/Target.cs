@@ -48,18 +48,17 @@ public class Target : MonoBehaviour
             wasInZone = false;
         }
 
-
         if (!handled && Mathf.Abs(transform.position.x) > destroyXLimit)
         {
+            handled = true;
+
             if (type == TargetType.Go)
             {
                 GameManager.Instance.Miss_Overtime(this);
             }
-            else
+            else if (type == TargetType.NoGo)
             {
-                //GameManager.Instance.CorrectRej(this); //正確拒絕
-                handled = true;
-                Destroy(gameObject);
+                GameManager.Instance.CorrectRej(this);
             }
         }
     }
