@@ -28,26 +28,26 @@ public class DifficultyConfig
     [TextArea(2, 4)]
     public string introText;
 
-    [Tooltip("Easy 目標篩選條件（屬性對）")]
-    public PropertyFilter easyTargetFilter;
+    // [Tooltip("Easy 目標篩選條件（屬性對）")]
+    // public PropertyFilter easyTargetFilter;
 
-    [Tooltip("Easy 干擾篩選條件（屬性對）")]
-    public PropertyFilter easyDistractionFilter;
+    // [Tooltip("Easy 干擾篩選條件（屬性對）")]
+    // public PropertyFilter easyDistractionFilter;
 
-    [Tooltip("Medium 目標篩選條件")]
-    public PropertyFilter mediumTargetFilter;
+    // [Tooltip("Medium 目標篩選條件")]
+    // public PropertyFilter mediumTargetFilter;
 
-    [Tooltip("Medium 干擾篩選條件")]
-    public PropertyFilter mediumDistractionFilter;
+    // [Tooltip("Medium 干擾篩選條件")]
+    // public PropertyFilter mediumDistractionFilter;
 
-    [Tooltip("Hard 目標篩選條件")]
-    public PropertyFilter hardTargetFilter;
+    // [Tooltip("Hard 目標篩選條件")]
+    // public PropertyFilter hardTargetFilter;
 
-    [Tooltip("Hard 干擾篩選條件")]
-    public PropertyFilter hardDistractionFilter;
+    // [Tooltip("Hard 干擾篩選條件")]
+    // public PropertyFilter hardDistractionFilter;
 
-    [Tooltip("Current mission hits")]
-    private int currentMissionHits;
+    // [Tooltip("Current mission hits")]
+    // private int currentMissionHits;
 }
 
 [System.Serializable]
@@ -344,92 +344,92 @@ public class DifficultyManager : MonoBehaviour
 
 
 
-    private FruitOption PickRandomFruit()
-    {
-        if (allFruits == null || allFruits.Length == 0)
-            return null;
+    // private FruitOption PickRandomFruit()
+    // {
+    //     if (allFruits == null || allFruits.Length == 0)
+    //         return null;
 
-        return allFruits[Random.Range(0, allFruits.Length)];
-    }
+    //     return allFruits[Random.Range(0, allFruits.Length)];
+    // }
 
-    private FruitOption PickRandomFruit(PropertyFilter filter, List<string> excludeFruitNames)
-    {
-        List<FruitOption> candidates = new List<FruitOption>();
+    // private FruitOption PickRandomFruit(PropertyFilter filter, List<string> excludeFruitNames)
+    // {
+    //     List<FruitOption> candidates = new List<FruitOption>();
 
-        foreach (FruitOption fruit in allFruits)
-        {
-            // 檢查是否在排除清單中
-            bool isExcluded = false;
-            foreach (string name in excludeFruitNames)
-            {
-                if (fruit.fruitName == name)
-                {
-                    isExcluded = true;
-                    break;
-                }
-            }
+    //     foreach (FruitOption fruit in allFruits)
+    //     {
+    //         // 檢查是否在排除清單中
+    //         bool isExcluded = false;
+    //         foreach (string name in excludeFruitNames)
+    //         {
+    //             if (fruit.fruitName == name)
+    //             {
+    //                 isExcluded = true;
+    //                 break;
+    //             }
+    //         }
 
-            if (isExcluded)
-                continue;
+    //         if (isExcluded)
+    //             continue;
 
-            // 如果有過濾器，檢查是否符合
-            if (filter != null && !filter.Matches(fruit))
-                continue;
+    //         // 如果有過濾器，檢查是否符合
+    //         if (filter != null && !filter.Matches(fruit))
+    //             continue;
 
-            candidates.Add(fruit);
-        }
+    //         candidates.Add(fruit);
+    //     }
 
-        if (candidates.Count == 0)
-            return null;
+    //     if (candidates.Count == 0)
+    //         return null;
 
-        return candidates[Random.Range(0, candidates.Count)];
-    }
+    //     return candidates[Random.Range(0, candidates.Count)];
+    // }
 
-    private List<FruitOption> PickRandomFruits(PropertyFilter filter, int count, List<string> excludeFruitNames)
-    {
-        List<FruitOption> candidates = new List<FruitOption>();
+    // private List<FruitOption> PickRandomFruits(PropertyFilter filter, int count, List<string> excludeFruitNames)
+    // {
+    //     List<FruitOption> candidates = new List<FruitOption>();
 
-        foreach (FruitOption fruit in allFruits)
-        {
-            // 檢查是否在排除清單中
-            bool isExcluded = false;
-            foreach (string name in excludeFruitNames)
-            {
-                if (fruit.fruitName == name)
-                {
-                    isExcluded = true;
-                    break;
-                }
-            }
+    //     foreach (FruitOption fruit in allFruits)
+    //     {
+    //         // 檢查是否在排除清單中
+    //         bool isExcluded = false;
+    //         foreach (string name in excludeFruitNames)
+    //         {
+    //             if (fruit.fruitName == name)
+    //             {
+    //                 isExcluded = true;
+    //                 break;
+    //             }
+    //         }
 
-            if (isExcluded)
-                continue;
+    //         if (isExcluded)
+    //             continue;
 
-            // 如果有過濾器，檢查是否符合
-            if (filter != null && !filter.Matches(fruit))
-                continue;
+    //         // 如果有過濾器，檢查是否符合
+    //         if (filter != null && !filter.Matches(fruit))
+    //             continue;
 
-            candidates.Add(fruit);
-        }
+    //         candidates.Add(fruit);
+    //     }
 
-        List<FruitOption> picked = new List<FruitOption>();
-        count = Mathf.Min(count, candidates.Count);
+    //     List<FruitOption> picked = new List<FruitOption>();
+    //     count = Mathf.Min(count, candidates.Count);
 
-        List<int> indices = new List<int>();
-        for (int i = 0; i < candidates.Count; i++)
-        {
-            indices.Add(i);
-        }
+    //     List<int> indices = new List<int>();
+    //     for (int i = 0; i < candidates.Count; i++)
+    //     {
+    //         indices.Add(i);
+    //     }
 
-        for (int i = 0; i < count; i++)
-        {
-            int randomIndex = Random.Range(0, indices.Count);
-            picked.Add(candidates[indices[randomIndex]]);
-            indices.RemoveAt(randomIndex);
-        }
+    //     for (int i = 0; i < count; i++)
+    //     {
+    //         int randomIndex = Random.Range(0, indices.Count);
+    //         picked.Add(candidates[indices[randomIndex]]);
+    //         indices.RemoveAt(randomIndex);
+    //     }
 
-        return picked;
-    }
+    //     return picked;
+    // }
 
     public FruitOption GetFruitOption(string fruitName)
     {

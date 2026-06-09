@@ -56,7 +56,6 @@ public class Spawner : MonoBehaviour
     private readonly List<GameObject> currentTargets = new List<GameObject>();
 
     // 三條固定飛行軌道，由上而下。
-    // private readonly float[] lanes = { 2f, 0f, -2f };
     private readonly float[] lanes = { 4f, 2f, -3f };
 
     void Start()

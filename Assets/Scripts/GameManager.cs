@@ -74,6 +74,7 @@ public class GameManager : MonoBehaviour
     new Dictionary<string, TMP_Text>();
     public Image clickSingleIcon;
     public TMP_Text clickCountText;
+    public BoxCollider2D actionZoneCollider;
 
   
 
@@ -233,12 +234,11 @@ public class GameManager : MonoBehaviour
 
         bool IsInsideActionZone(Target target)
         {
-            if (ActionZone == null) return false;
+            if (actionZoneCollider == null || target == null)
+                return false;
 
-            Vector2 p = target.transform.position - ActionZone.position;
+            return actionZoneCollider.bounds.Contains(target.transform.position);
 
-            return (p.x * p.x) / (radiusX * radiusX) + (p.y * p.y) / (radiusY * radiusY)
-            <= 1f;
         }
 
     }
@@ -251,17 +251,6 @@ public class GameManager : MonoBehaviour
         return Accuracy;
     }
 
-    // private void SetHudVisible(bool visible)
-    // {
-    //     if (healthText != null)
-    //         healthText.gameObject.SetActive(visible);
-
-    //     if (clickStatusRoot != null)
-    //     clickStatusRoot.SetActive(visible);
-
-    //     if (targetProgressText != null)
-    //         targetProgressText.gameObject.SetActive(visible);
-    // }
 
     public void ShowDifficultySelect()
     {
@@ -471,43 +460,6 @@ public class GameManager : MonoBehaviour
         score += amount;
     }
 
-    // public void StartGame()
-    // {
-    //     // 取得玩家已解鎖的最高難度
-    //     Difficulty currentDifficulty = DifficultyManager.Instance != null 
-    //         ? DifficultyManager.Instance.GetUnlockedDifficulty()
-    //         : Difficulty.Easy;
-
-    //     // 設定難度
-    //     if (spawner != null)
-    //     {
-    //         spawner.SetCurrentDifficulty(currentDifficulty);
-    //     }
-
-    //     // GenerateRoundTargetRequirements();
-    //     // BuildTargetProgressUI();
-    //     // UpdateHud();
-    //     GenerateRoundTargetRequirements();
-
-    //     BuildIcons(
-    //         healthIconContainer,
-    //         healthIconPrefab,
-    //         maxMistakes,
-    //         healthIconObjects
-    //     );
-
-
-    //     BuildTargetProgressUI();
-    //     UpdateHud();
-
-    //     if (showStartMenu && startMenuRoot != null)
-    //     {   
-    //         ShowLevelIntroPanel(currentDifficulty);
-    //         return;
-    //     }
-
-    //     BeginGameplay();
-    // }
     public void StartGame()
     {
         StartGameWithDifficulty(Difficulty.Easy);
@@ -539,14 +491,11 @@ public class GameManager : MonoBehaviour
             Destroy(levelIntroPanel);
             levelIntroPanel = null;
         }
+        
         if (trayActionZoneSprite != null)
         {
-            radiusX = trayActionZoneSprite.bounds.size.x / 2f;
-        }
-        if (ActionZone != null && trayActionZoneSprite != null)
-        {
-            ActionZone.position = trayActionZoneSprite.bounds.center;
-            radiusX = trayActionZoneSprite.bounds.size.x / 2f;
+            trayActionZoneSprite.gameObject.SetActive(true);
+            trayActionZoneSprite.color = new Color(1f, 1f, 1f, 0.25f);
         }
     }
 
@@ -813,6 +762,8 @@ public class GameManager : MonoBehaviour
     private void ShowLevelIntroPanel(Difficulty difficulty)
     {
         SetHudVisible(false);
+        if (trayActionZoneSprite != null)
+            trayActionZoneSprite.gameObject.SetActive(false);
         if (levelIntroPanel != null)
         {
             Destroy(levelIntroPanel);
@@ -1139,8 +1090,6 @@ public class GameManager : MonoBehaviour
     }
 
     
-
-    //更改通關條件：'生命值條件'，注意GO/NOGO OBJ情況
     public void BeginRun(int targetCount, int hasTarget)
     {
         currentRun = new RunRecord
@@ -1161,12 +1110,14 @@ public class GameManager : MonoBehaviour
 
     public bool IsInsideActionZonePublic(Target target)
     {
-        if (ActionZone == null) return false;
+        
+        if (actionZoneCollider == null)
+            return false;
 
-        Vector2 p = target.transform.position - ActionZone.position;
-
-        return (p.x * p.x) / (radiusX * radiusX) +
-            (p.y * p.y) / (radiusY * radiusY) <= 1f;
+        return actionZoneCollider.bounds.Contains(
+            target.transform.position
+        );
+        
     }
 
     public void RegisterGoEnterZone(Target target)
