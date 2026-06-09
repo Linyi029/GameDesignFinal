@@ -30,7 +30,6 @@ public class GameManager : MonoBehaviour
     [Tooltip("標題木牌圖片。")]
     public Sprite titleSignSprite;
 
-
     [Tooltip("完整的遊戲說明按鈕圖片，圖片內可直接包含文字。")]
     public Sprite instructionButtonSprite;
 
@@ -115,10 +114,6 @@ public class GameManager : MonoBehaviour
     
 
     [SerializeField] private float Accuracy = 0f;
-    [Header("Game HUD")]
-    public TMP_Text clicksText;
-    public TMP_Text healthText;
-    public TMP_Text targetProgressText;
     
 
 
@@ -146,7 +141,6 @@ public class GameManager : MonoBehaviour
     public Sprite replayButtonSprite;
     public Sprite nextLevelButtonSprite;
     public Sprite resultPanelSprite;
-
 
 
     void Awake()
@@ -658,15 +652,15 @@ public class GameManager : MonoBehaviour
 
         string instructionText =
             "遊戲說明\n\n" +
-            "看準水果進入中間的 Action Zone 時點擊。\n" +
-            "點到正確的 Go target 會得分，錯過或點到 No-Go target 會扣生命。\n" +
-            "每一關開始前會顯示該難度的目標水果數量與通關條件。";
+            "看準水果進入中間的綠色區塊時點擊!\n" +
+            "每一關開始前會顯示該難度的目標水果數量。"+
+            "點到錯誤水果會會扣除生命值！\n";
 
         Text text = CreateText(
             "Instruction Text",
             instructionPanel.transform,
             instructionText,
-            32,
+            28,
             FontStyle.Bold,
             Color.white
         );
@@ -697,7 +691,7 @@ public class GameManager : MonoBehaviour
         iconRect.anchorMin = new Vector2(0.5f, 0.5f);
         iconRect.anchorMax = new Vector2(0.5f, 0.5f);
         iconRect.anchoredPosition = new Vector2(-70f, 0f);
-        iconRect.sizeDelta = new Vector2(70f, 70f);
+        iconRect.sizeDelta = new Vector2(100f, 100f);
 
         Text countText = CreateText(
             "Target Count",
@@ -804,8 +798,8 @@ public class GameManager : MonoBehaviour
 
         List<FruitOption> targetFruits = spawner.GetCurrentTargetFruits();
 
-        float startY = 70f;
-        float gap = 85f;
+        float startY = 80f;
+        float gap = 55f;
 
         for (int i = 0; i < targetFruits.Count; i++)
         {
@@ -827,7 +821,7 @@ public class GameManager : MonoBehaviour
             "Click Limit Text",
             levelIntroPanel.transform,
             $"{maxClicks} 步",
-            42,
+            60,
             FontStyle.Bold,
             Color.white
         );
@@ -835,7 +829,7 @@ public class GameManager : MonoBehaviour
         RectTransform clickRect = clickText.GetComponent<RectTransform>();
         clickRect.anchorMin = new Vector2(0.5f, 0.5f);
         clickRect.anchorMax = new Vector2(0.5f, 0.5f);
-        clickRect.anchoredPosition = new Vector2(0f, -140f);
+        clickRect.anchoredPosition = new Vector2(120f, -90f);
         clickRect.sizeDelta = new Vector2(600f, 80f);
 
         GameObject startButton = CreateMenuButton(
@@ -1113,6 +1107,10 @@ public class GameManager : MonoBehaviour
         if (DifficultyManager.Instance != null)
         {
             DifficultyManager.Instance.CompleteDifficulty(currentDifficulty);
+        }
+        if (spawner != null)
+        {
+            spawner.EnableAdvancedMode(speedIncreaseMultiplier);
         }
 
         Debug.Log("Health survived. Stage cleared.");
