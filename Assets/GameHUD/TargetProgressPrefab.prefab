@@ -57,7 +57,7 @@ MonoBehaviour:
     m_Top: 0
     m_Bottom: 0
   m_ChildAlignment: 4
-  m_Spacing: 8
+  m_Spacing: 0
   m_ChildForceExpandWidth: 0
   m_ChildForceExpandHeight: 0
   m_ChildControlWidth: 1
@@ -80,7 +80,7 @@ MonoBehaviour:
   m_IgnoreLayout: 0
   m_MinWidth: -1
   m_MinHeight: 60
-  m_PreferredWidth: 200
+  m_PreferredWidth: 180
   m_PreferredHeight: 60
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1

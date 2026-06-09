@@ -57,11 +57,59 @@ public class Spawner : MonoBehaviour
 
     // 三條固定飛行軌道，由上而下。
     private readonly float[] lanes = { 4f, 2f, -3f };
+    private Coroutine spawnRoutine;
+    public Transform spawnedTargetsRoot;
+    private bool isSpawning = false;
+
 
     void Start()
     {
         
-        StartCoroutine(SpawnLoop());
+        // StartCoroutine(SpawnLoop());
+        //StartSpawnLoop();
+    }
+    // public void ClearSpawnedTargets()
+    // {
+    //     currentTargets.Clear();
+    // }
+    // public void StartSpawnLoop()
+    // {
+    //     isSpawning = true;
+
+    //     if (spawnRoutine == null)
+    //         spawnRoutine = StartCoroutine(SpawnLoop());
+    // }
+
+    public void StopSpawning()
+    {
+        isSpawning = false;
+    }
+
+    public void ClearSpawnedTargets()
+    {
+        foreach (GameObject target in currentTargets)
+        {
+            if (target != null)
+                Destroy(target);
+        }
+
+        currentTargets.Clear();
+    }
+    public void StartSpawnLoop()
+    {
+        StopSpawnLoop();
+        isSpawning = true;
+        currentTargets.Clear();
+        spawnRoutine = StartCoroutine(SpawnLoop());
+    }
+    public void StopSpawnLoop()
+    {
+        isSpawning = false;
+        if (spawnRoutine != null)
+        {
+            StopCoroutine(spawnRoutine);
+            spawnRoutine = null;
+        }
     }
 
     void OnValidate()
@@ -112,21 +160,31 @@ public class Spawner : MonoBehaviour
             Debug.Log("LEVEL: " + fruit.fruitName);
         }
     }
-
     IEnumerator SpawnLoop()
     {
         while (true)
         {
+            if (!isSpawning)
+            {
+                yield return null;
+                continue;
+            }
+
             RemoveDestroyedTargets();
+
             if (currentTargets.Count == 0)
             {
                 GameManager.Instance.FinishCurrentWaveIfNoClick();
+
+                if (!isSpawning)
+                    continue;
 
                 SpawnWave();
 
                 float waitTime = Random.Range(minSpawnWait, maxSpawnWait);
                 yield return new WaitForSeconds(waitTime);
             }
+
             yield return null;
         }
     }
@@ -354,6 +412,8 @@ public class Spawner : MonoBehaviour
             spawnPos,
             Quaternion.identity
         );
+        if (spawnedTargetsRoot != null)
+            currentTarget.transform.SetParent(spawnedTargetsRoot, true);
 
         // 設定移動方向
         currentTarget.transform.localScale = Vector3.one * 0.1f;

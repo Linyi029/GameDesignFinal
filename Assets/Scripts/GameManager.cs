@@ -75,6 +75,11 @@ public class GameManager : MonoBehaviour
     public Image clickSingleIcon;
     public TMP_Text clickCountText;
     public BoxCollider2D actionZoneCollider;
+    private GameObject resultPanel;
+
+    
+
+ 
 
   
 
@@ -137,6 +142,11 @@ public class GameManager : MonoBehaviour
     public Transform targetProgressContainer;
     public GameObject targetProgressPrefab;
 
+    [Header("Result Panel")]
+    public Sprite replayButtonSprite;
+    public Sprite nextLevelButtonSprite;
+    public Sprite resultPanelSprite;
+
 
 
     void Awake()
@@ -183,10 +193,17 @@ public class GameManager : MonoBehaviour
         {
             return;
         }
+        if (remainingClicks <= 0)
+        {
+            CheckRoundEnd();
+            return;
+        }
         if (trayFollower != null)
         {
             trayFollower.ShowAtClickPosition(Input.mousePosition);
         }
+        ConsumeShootableTarget();
+        UpdateHud();
 
         if (roundEnded)
         {
@@ -207,6 +224,8 @@ public class GameManager : MonoBehaviour
         {
             CheckTarget(target);
         }
+        if (!roundEnded)
+            CheckRoundEnd();
 
 
     }
@@ -388,10 +407,7 @@ public class GameManager : MonoBehaviour
         AddScore(100);
         HitCount++;
         roundHits++;
-
         RecordTargetHit(target.fruitName);
-
-        ConsumeShootableTarget();
         UpdateAcc();
         UpdateHud();
 
@@ -408,7 +424,6 @@ public class GameManager : MonoBehaviour
         CorrectReject++;
         UpdateAcc();
         Debug.Log("CorrectReject, Score = " + score);
-        // FinishRun(target, 0, false);
         Destroy(target.gameObject);
     }
 
@@ -431,7 +446,6 @@ public class GameManager : MonoBehaviour
         target.handled = true;
         AddScore(-50);
         MissCount++;
-        ConsumeShootableTarget();
         LoseHealth();
         UpdateAcc();
         UpdateHud();
@@ -445,8 +459,6 @@ public class GameManager : MonoBehaviour
         target.handled = true;
         AddScore(-50);
         MissCount++;
-        // ConsumeShootableTarget();
-        // LoseHealth();
         UpdateAcc();
         UpdateHud();
         Debug.Log("Miss, Score = " + score);
@@ -479,6 +491,7 @@ public class GameManager : MonoBehaviour
         if (spawner != null)
         {
             spawner.enabled = true;
+            spawner.StartSpawnLoop();
         }
 
         if (startMenuRoot != null)
@@ -838,6 +851,115 @@ public class GameManager : MonoBehaviour
     }
 
 
+    private void ShowResultPanel(bool success)
+    {
+        Time.timeScale = 0f;
+        gameStarted = false;
+
+        SetHudVisible(false);
+
+        if (trayActionZoneSprite != null)
+            trayActionZoneSprite.gameObject.SetActive(false);
+
+        if (resultPanel != null)
+            Destroy(resultPanel);
+
+        EnsureStartMenuRootExists();
+
+        resultPanel = CreateUiObject("Result Panel", startMenuRoot.transform);
+
+        Image panelImage = resultPanel.AddComponent<Image>();
+        panelImage.sprite = resultPanelSprite != null
+            ? resultPanelSprite
+            : levelIntroBackgroundSprite;
+        
+        panelImage.type = Image.Type.Simple;
+        panelImage.preserveAspect = true;
+
+        RectTransform rect = resultPanel.GetComponent<RectTransform>();
+        rect.anchorMin = new Vector2(0.5f, 0.5f);
+        rect.anchorMax = new Vector2(0.5f, 0.5f);
+        rect.anchoredPosition = Vector2.zero;
+        SetSizeFromSprite(rect, panelImage.sprite, new Vector2(1000f, 680f), new Vector2(900f, 600f));
+
+        string title = success ? "挑戰成功！" : "挑戰失敗";
+
+        Text titleText = CreateText(
+            "Result Title",
+            resultPanel.transform,
+            title,
+            56,
+            FontStyle.Bold,
+            Color.white
+        );
+
+        RectTransform titleRect = titleText.GetComponent<RectTransform>();
+        titleRect.anchorMin = new Vector2(0.5f, 0.5f);
+        titleRect.anchorMax = new Vector2(0.5f, 0.5f);
+        titleRect.anchoredPosition = new Vector2(0f, 160f);
+        titleRect.sizeDelta = new Vector2(700f, 90f);
+
+        string stats =$"剩餘次數 : {remainingClicks}\n";
+            // $"剩餘次數 : {remainingClicks}\n" +
+            // $"Accuracy : {(Accuracy * 100f):F1}%\n" +
+            // $"Hit : {HitCount}\n" +
+            // $"Miss : {MissCount}\n" +
+            // $"False Alarm : {FalseAlarm}\n" +
+            // $"Correct Reject : {CorrectReject}";
+
+        Text statsText = CreateText(
+            "Result Stats",
+            resultPanel.transform,
+            stats,
+            32,
+            FontStyle.Bold,
+            Color.white
+        );
+
+        RectTransform statsRect = statsText.GetComponent<RectTransform>();
+        statsRect.anchorMin = new Vector2(0.5f, 0.5f);
+        statsRect.anchorMax = new Vector2(0.5f, 0.5f);
+        statsRect.anchoredPosition = new Vector2(0f, 20f);
+        statsRect.sizeDelta = new Vector2(700f, 220f);
+
+        GameObject replayButton = CreateMenuButton(
+            "Replay Button",
+            resultPanel.transform,
+            replayButtonSprite != null ? replayButtonSprite : startButtonSprite
+    
+        );
+
+        replayButton.GetComponent<RectTransform>().anchoredPosition =
+        success? new Vector2(-160f, -200f) : new Vector2(0f, -200f);
+
+        replayButton.GetComponent<Button>().onClick.AddListener(ReplayGame);
+
+        if (success)
+        {
+            GameObject nextButton = CreateMenuButton(
+                "Next Level Button",
+                resultPanel.transform,
+                nextLevelButtonSprite != null ? nextLevelButtonSprite : startButtonSprite
+            );
+
+            nextButton.GetComponent<RectTransform>().anchoredPosition =
+                new Vector2(160f, -200f);
+            nextButton.GetComponent<Button>().onClick.AddListener(NextLevel);
+        }
+    }
+    private void NextLevel()
+    {
+        Time.timeScale = 1f;
+
+        if (resultPanel != null)
+        {
+            Destroy(resultPanel);
+            resultPanel = null;
+        }
+
+        PrepareNextLevelIntro();
+    }
+
     private void ToggleInstructions()
     {
         if (instructionPanel != null)
@@ -871,6 +993,30 @@ public class GameManager : MonoBehaviour
         StretchToParent(rect);
 
         return textComponent;
+    }
+
+    private void ReplayGame()
+    {
+        Time.timeScale = 1f;
+
+        Difficulty currentDifficulty =
+            spawner != null ? spawner.GetCurrentDifficulty() : Difficulty.Easy;
+
+        HitCount = 0;
+        MissCount = 0;
+        FalseAlarm = 0;
+        CorrectReject = 0;
+        Accuracy = 0f;
+
+        if (resultPanel != null)
+        {
+            Destroy(resultPanel);
+            resultPanel = null;
+        }
+
+        ResetRoundHealth();
+
+        StartGameWithDifficulty(currentDifficulty);
     }
 
 
@@ -909,14 +1055,44 @@ public class GameManager : MonoBehaviour
         eventSystemObject.AddComponent<StandaloneInputModule>();
     }
 
+    private void ClearAllTargets()
+    {
+        if (spawner != null && spawner.spawnedTargetsRoot != null)
+        {
+            foreach (Transform child in spawner.spawnedTargetsRoot)
+            {
+                Destroy(child.gameObject);
+            }
+        }
+    }
+    private void EndRound(bool success)
+    {
+        if (roundEnded) return;
+
+        roundEnded = true;
+        gameStarted = false;
+
+        ExportCsv();
+
+        if (spawner != null)
+        {
+            spawner.StopSpawnLoop();
+            spawner.ClearSpawnedTargets();
+            spawner.enabled = false;
+            // spawner.StopSpawning();
+            // spawner.ClearSpawnedTargets();
+        }
+
+        ClearAllTargets();
+
+        ShowResultPanel(success);
+    }
     private void CheckRoundEnd()
     {
         if (health <= 0)
         {
-            roundEnded = true;
             Debug.Log("Health depleted. Game over.");
-            ExportCsv();
-            Time.timeScale = 0f;
+            EndRound(false);
             return;
         }
 
@@ -924,29 +1100,23 @@ public class GameManager : MonoBehaviour
         {
             if (remainingClicks <= 0)
             {
-                Debug.Log($"關卡尚未完成：尚需 {GetRemainingRequiredHitCount()} 個指定水果。請繼續嘗試。\n目前生命值 {health}/{maxMistakes}。");
-                ExportCsv();
+                Debug.Log($"關卡失敗：尚需 {GetRemainingRequiredHitCount()} 個指定水果。");
+                EndRound(false);
             }
+
             return;
         }
 
-        // 通知 DifficultyManager 玩家已完成當前難度
-        Difficulty currentDifficulty = spawner != null ? spawner.GetCurrentDifficulty() : Difficulty.Easy;
+        Difficulty currentDifficulty =
+            spawner != null ? spawner.GetCurrentDifficulty() : Difficulty.Easy;
+
         if (DifficultyManager.Instance != null)
         {
             DifficultyManager.Instance.CompleteDifficulty(currentDifficulty);
         }
 
-        if (spawner != null)
-        {
-            spawner.EnableAdvancedMode(speedIncreaseMultiplier);
-        }
-
-        Debug.Log("Health survived. Stage cleared. Increasing difficulty.");
-        ExportCsv();
-        // ResetRoundHealth();
-        // StartGame();
-        PrepareNextLevelIntro();
+        Debug.Log("Health survived. Stage cleared.");
+        EndRound(true);
     }
 
     private void ResetRoundHealth()
