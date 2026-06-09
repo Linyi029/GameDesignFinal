@@ -131,13 +131,22 @@ public class FruitOption
     [Tooltip("其他特徵標籤（如：Rotten, Small）。")]
     public string[] tags = new string[0];
 
+    [Tooltip("水果種類，例如 Apple, Banana, Grape。未熟版本和成熟版本要填一樣。")]
+    public string fruitType;
+
     public bool HasTag(string tag)
-    {
+    {   
         foreach (string t in tags)
         {
-            if (t == tag) return true;
+            if (t.ToLower() == tag.ToLower())
+                return true;
         }
         return false;
+        // foreach (string t in tags)
+        // {
+        //     if (t == tag) return true;
+        // }
+        // return false;
     }
 }
 
@@ -212,93 +221,222 @@ public class DifficultyManager : MonoBehaviour
     /// Medium: 2個目標水果（同形狀不同顏色）+ 5個干擾水果（同形狀或不同）
     /// Hard: 3個目標水果（不同形狀，但同色或相似）+ 7個干擾水果
     /// </summary>
-    public (List<FruitOption> targetFruits, List<FruitOption> allLevelFruits) GenerateLevelFruits(Difficulty difficulty)
+    // public (List<FruitOption> targetFruits, List<FruitOption> allLevelFruits) GenerateLevelFruits(Difficulty difficulty)
+    // {
+    //     List<FruitOption> targetFruits = new List<FruitOption>();
+    //     List<FruitOption> allLevelFruits = new List<FruitOption>();
+
+    //     if (difficulty == Difficulty.Easy)
+    //     {
+    //         // Easy: 隨機挑 1 個目標水果
+    //         FruitOption target = PickRandomFruit();
+    //         if (target != null)
+    //         {
+    //             targetFruits.Add(target);
+    //             allLevelFruits.Add(target);
+
+    //             // 挑 2 個干擾水果：顏色和形狀都要不同
+    //             PropertyFilter filter = new PropertyFilter();
+    //             filter.excludedProperties = new string[] { $"color={target.color}", $"shape={target.shape}" };
+
+    //             List<FruitOption> distractors = PickRandomFruits(filter, 2, new List<string> { target.fruitName });
+    //             allLevelFruits.AddRange(distractors);
+    //         }
+    //     }
+    //     else if (difficulty == Difficulty.Medium)
+    //     {
+    //         // Medium: 挑 2 個目標水果（同形狀不同顏色）
+    //         FruitOption firstTarget = PickRandomFruit();
+    //         if (firstTarget != null)
+    //         {
+    //             targetFruits.Add(firstTarget);
+    //             allLevelFruits.Add(firstTarget);
+
+    //             // 挑第 2 個目標：同形狀，不同顏色
+    //             PropertyFilter sameShapeFilter = new PropertyFilter();
+    //             sameShapeFilter.requiredProperties = new string[] { $"shape={firstTarget.shape}" };
+    //             sameShapeFilter.excludedProperties = new string[] { $"color={firstTarget.color}" };
+
+    //             FruitOption secondTarget = PickRandomFruit(sameShapeFilter, new List<string> { firstTarget.fruitName });
+    //             if (secondTarget != null)
+    //             {
+    //                 targetFruits.Add(secondTarget);
+    //                 allLevelFruits.Add(secondTarget);
+
+    //                 // 挑 5 個干擾水果
+    //                 // 可以和目標同形狀但不同顏色，或完全不同
+    //                 List<string> excludeFruits = new List<string> { firstTarget.fruitName, secondTarget.fruitName };
+    //                 List<FruitOption> distractors = PickRandomFruits(null, 2, excludeFruits);
+    //                 allLevelFruits.AddRange(distractors);
+    //             }
+    //         }
+    //     }
+    //     else if (difficulty == Difficulty.Hard)
+    //     {
+    //         // Hard: 挑 3 個目標水果（同顏色同形狀，但不同水果名）
+    //         FruitOption firstTarget = PickRandomFruit();
+    //         if (firstTarget != null)
+    //         {
+    //             targetFruits.Add(firstTarget);
+    //             allLevelFruits.Add(firstTarget);
+
+    //             // 挑第 2 個目標：同顏色同形狀，不同名稱
+    //             PropertyFilter sameColorShapeFilter = new PropertyFilter();
+    //             sameColorShapeFilter.requiredProperties = new string[] { $"color={firstTarget.color}", $"shape={firstTarget.shape}" };
+
+    //             FruitOption secondTarget = PickRandomFruit(sameColorShapeFilter, new List<string> { firstTarget.fruitName });
+    //             if (secondTarget != null)
+    //             {
+    //                 targetFruits.Add(secondTarget);
+    //                 allLevelFruits.Add(secondTarget);
+
+    //                 // 挑第 3 個目標：同顏色同形狀，不同名稱
+    //                 FruitOption thirdTarget = PickRandomFruit(sameColorShapeFilter, new List<string> { firstTarget.fruitName, secondTarget.fruitName });
+    //                 if (thirdTarget != null)
+    //                 {
+    //                     targetFruits.Add(thirdTarget);
+    //                     allLevelFruits.Add(thirdTarget);
+
+    //                     // 挑 7 個干擾水果
+    //                     List<string> excludeFruits = new List<string> { firstTarget.fruitName, secondTarget.fruitName, thirdTarget.fruitName };
+    //                     List<FruitOption> distractors = PickRandomFruits(null, 7, excludeFruits);
+    //                     allLevelFruits.AddRange(distractors);
+    //                 }
+    //             }
+    //         }
+    //     }
+
+    //     return (targetFruits, allLevelFruits);
+    // }
+
+    private List<FruitOption> PickRandomFromList(
+        List<FruitOption> source,
+        int count,
+        List<string> excludeFruitNames
+    )
     {
-        List<FruitOption> targetFruits = new List<FruitOption>();
-        List<FruitOption> allLevelFruits = new List<FruitOption>();
+        List<FruitOption> candidates = new List<FruitOption>();
+
+        foreach (FruitOption fruit in source)
+        {
+            if (fruit == null) continue;
+
+            if (excludeFruitNames.Contains(fruit.fruitName))
+                continue;
+
+            candidates.Add(fruit);
+        }
+
+        List<FruitOption> picked = new List<FruitOption>();
+
+        count = Mathf.Min(count, candidates.Count);
+
+        for (int i = 0; i < count; i++)
+        {
+            int index = Random.Range(0, candidates.Count);
+            picked.Add(candidates[index]);
+            candidates.RemoveAt(index);
+        }
+
+        return picked;
+    }
+    public (List<FruitOption> targetFruits, List<FruitOption> allLevelFruits)
+    GenerateLevelFruits(Difficulty difficulty)
+    {
+        int targetCount = 1;
+        int poolMin = 3;
+        int poolMax = 3;
+        int minUnripeCount = 0;
+        bool excludeUnripe = false;
 
         if (difficulty == Difficulty.Easy)
         {
-            // Easy: 隨機挑 1 個目標水果
-            FruitOption target = PickRandomFruit();
-            if (target != null)
-            {
-                targetFruits.Add(target);
-                allLevelFruits.Add(target);
-
-                // 挑 2 個干擾水果：顏色和形狀都要不同
-                PropertyFilter filter = new PropertyFilter();
-                filter.excludedProperties = new string[] { $"color={target.color}", $"shape={target.shape}" };
-
-                List<FruitOption> distractors = PickRandomFruits(filter, 2, new List<string> { target.fruitName });
-                allLevelFruits.AddRange(distractors);
-            }
+            targetCount = 1;
+            poolMin = 3;
+            poolMax = 3;
+            minUnripeCount = 0;
+            excludeUnripe = true;
         }
         else if (difficulty == Difficulty.Medium)
         {
-            // Medium: 挑 2 個目標水果（同形狀不同顏色）
-            FruitOption firstTarget = PickRandomFruit();
-            if (firstTarget != null)
-            {
-                targetFruits.Add(firstTarget);
-                allLevelFruits.Add(firstTarget);
-
-                // 挑第 2 個目標：同形狀，不同顏色
-                PropertyFilter sameShapeFilter = new PropertyFilter();
-                sameShapeFilter.requiredProperties = new string[] { $"shape={firstTarget.shape}" };
-                sameShapeFilter.excludedProperties = new string[] { $"color={firstTarget.color}" };
-
-                FruitOption secondTarget = PickRandomFruit(sameShapeFilter, new List<string> { firstTarget.fruitName });
-                if (secondTarget != null)
-                {
-                    targetFruits.Add(secondTarget);
-                    allLevelFruits.Add(secondTarget);
-
-                    // 挑 5 個干擾水果
-                    // 可以和目標同形狀但不同顏色，或完全不同
-                    List<string> excludeFruits = new List<string> { firstTarget.fruitName, secondTarget.fruitName };
-                    List<FruitOption> distractors = PickRandomFruits(null, 2, excludeFruits);
-                    allLevelFruits.AddRange(distractors);
-                }
-            }
+            targetCount = 2;
+            poolMin = 3;
+            poolMax = 4;
+            minUnripeCount = 1;
+            excludeUnripe = false;
         }
         else if (difficulty == Difficulty.Hard)
         {
-            // Hard: 挑 3 個目標水果（同顏色同形狀，但不同水果名）
-            FruitOption firstTarget = PickRandomFruit();
-            if (firstTarget != null)
-            {
-                targetFruits.Add(firstTarget);
-                allLevelFruits.Add(firstTarget);
-
-                // 挑第 2 個目標：同顏色同形狀，不同名稱
-                PropertyFilter sameColorShapeFilter = new PropertyFilter();
-                sameColorShapeFilter.requiredProperties = new string[] { $"color={firstTarget.color}", $"shape={firstTarget.shape}" };
-
-                FruitOption secondTarget = PickRandomFruit(sameColorShapeFilter, new List<string> { firstTarget.fruitName });
-                if (secondTarget != null)
-                {
-                    targetFruits.Add(secondTarget);
-                    allLevelFruits.Add(secondTarget);
-
-                    // 挑第 3 個目標：同顏色同形狀，不同名稱
-                    FruitOption thirdTarget = PickRandomFruit(sameColorShapeFilter, new List<string> { firstTarget.fruitName, secondTarget.fruitName });
-                    if (thirdTarget != null)
-                    {
-                        targetFruits.Add(thirdTarget);
-                        allLevelFruits.Add(thirdTarget);
-
-                        // 挑 7 個干擾水果
-                        List<string> excludeFruits = new List<string> { firstTarget.fruitName, secondTarget.fruitName, thirdTarget.fruitName };
-                        List<FruitOption> distractors = PickRandomFruits(null, 7, excludeFruits);
-                        allLevelFruits.AddRange(distractors);
-                    }
-                }
-            }
+            targetCount = 3;
+            poolMin = 4;
+            poolMax = 6;
+            minUnripeCount = 2;
+            excludeUnripe = false;
         }
+
+        List<FruitOption> candidates = new List<FruitOption>();
+
+        foreach (FruitOption fruit in allFruits)
+        {
+            if (fruit == null) continue;
+
+            if (excludeUnripe && fruit.HasTag("unripe"))
+                continue;
+
+            candidates.Add(fruit);
+        }
+
+        List<FruitOption> allLevelFruits = new List<FruitOption>();
+
+        int poolSize = Random.Range(poolMin, poolMax + 1);
+        poolSize = Mathf.Min(poolSize, candidates.Count);
+
+        // 先放入指定數量的未熟水果
+        List<FruitOption> unripeCandidates = new List<FruitOption>();
+
+        foreach (FruitOption fruit in candidates)
+        {
+            if (fruit.HasTag("unripe"))
+                unripeCandidates.Add(fruit);
+        }
+
+        List<FruitOption> pickedUnripe =
+            PickRandomFromList(unripeCandidates, minUnripeCount, new List<string>());
+
+        allLevelFruits.AddRange(pickedUnripe);
+
+        List<string> excludeNames = new List<string>();
+        foreach (FruitOption fruit in allLevelFruits)
+        {
+            excludeNames.Add(fruit.fruitName);
+        }
+
+        // 補滿 pool
+        List<FruitOption> remaining =
+            PickRandomFromList(candidates, poolSize - allLevelFruits.Count, excludeNames);
+
+        allLevelFruits.AddRange(remaining);
+
+        // 從 pool 裡挑 target，盡量不要挑未熟
+        List<FruitOption> targetCandidates = new List<FruitOption>();
+
+        foreach (FruitOption fruit in allLevelFruits)
+        {
+            if (!fruit.HasTag("unripe"))
+                targetCandidates.Add(fruit);
+        }
+
+        if (targetCandidates.Count < targetCount)
+            targetCandidates = allLevelFruits;
+
+        List<FruitOption> targetFruits =
+            PickRandomFromList(targetCandidates, targetCount, new List<string>());
 
         return (targetFruits, allLevelFruits);
     }
+
+
+
 
     private FruitOption PickRandomFruit()
     {
