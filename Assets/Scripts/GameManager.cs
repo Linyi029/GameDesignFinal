@@ -4,6 +4,7 @@ using UnityEngine.UI;
 using System.Collections.Generic;
 using System.Text;
 using TMPro;
+using System.Collections;
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
@@ -11,14 +12,6 @@ public class GameManager : MonoBehaviour
     [Tooltip("控制 target 生成的 Spawner。若沒有指定，遊戲開始時會自動尋找場景中的 Spawner。")]
     public Spawner spawner;
 
-    [Tooltip("Action Zone 的中心位置。")]
-    public Transform ActionZone;
-
-    [Tooltip("Action Zone 的水平半徑。")]
-    public float radiusX = 1.5f;
-
-    [Tooltip("Action Zone 的垂直半徑。")]
-    public float radiusY = 5f;
 
     [Header("Start Menu")]
     [Tooltip("遊戲開始時是否顯示開始介面。")]
@@ -57,13 +50,11 @@ public class GameManager : MonoBehaviour
 
     public TrayFollower trayFollower;
     private bool currentRunFinished = false;
-    [Header("HUD Icon Prefabs")]
-    public Transform healthIconContainer;
-    public GameObject healthIconPrefab;
-    public GameObject clickStatusRoot;
 
-    [SerializeField] private GameObject startMenuCanvas;
-    //[SerializeField] private GameObject difficultySelectCanvas;
+
+
+
+
     public GameObject difficultySelectCanvas;
 
 
@@ -71,16 +62,11 @@ public class GameManager : MonoBehaviour
 
     private Dictionary<string, TMP_Text> progressTexts =
     new Dictionary<string, TMP_Text>();
-    public Image clickSingleIcon;
-    public TMP_Text clickCountText;
+  
     public BoxCollider2D actionZoneCollider;
     private GameObject resultPanel;
 
     
-
- 
-
-  
 
     [SerializeField] private int score = 0;
 
@@ -98,6 +84,21 @@ public class GameManager : MonoBehaviour
     [SerializeField] private int maxMistakes = 0;
 
     [SerializeField] private int health = 0;
+
+
+
+    [Header("HUD Icon Prefabs")]
+    public Transform healthIconContainer;
+    public GameObject healthIconPrefab;
+    public GameObject clickStatusRoot;
+    public Image clickSingleIcon;
+    public TMP_Text clickCountText;
+
+
+    [Header("Warning Message")]
+    public TMP_Text warningText;
+    public float warningDuration = 1.2f;
+    private Coroutine warningRoutine;
 
     private bool roundEnded = false;
 
@@ -140,7 +141,9 @@ public class GameManager : MonoBehaviour
     [Header("Result Panel")]
     public Sprite replayButtonSprite;
     public Sprite nextLevelButtonSprite;
+    public Sprite homeButtonSprite;
     public Sprite resultPanelSprite;
+
 
 
     void Awake()
@@ -305,6 +308,12 @@ public class GameManager : MonoBehaviour
             Image icon =
                 item.transform.Find("FruitIcon")
                 .GetComponent<Image>();
+            // RectTransform iconRect =
+            //     icon.GetComponent<RectTransform>();
+
+            // iconRect.sizeDelta =
+            //     new Vector2(100f, 100f);
+
 
             TMP_Text text =
                 item.transform.Find("CountText")
@@ -318,6 +327,9 @@ public class GameManager : MonoBehaviour
                 fruit.prefab.GetComponent<SpriteRenderer>();
 
             icon.sprite = sr.sprite;
+            icon.preserveAspect = true;
+            RectTransform iconRect = icon.GetComponent<RectTransform>();
+            iconRect.sizeDelta = new Vector2(80f, 80f);
 
             text.text = $"0/{requirement.Value}";
 
@@ -423,6 +435,7 @@ public class GameManager : MonoBehaviour
 
     public void Punish(Target target) //false alarm
     {
+        ShowWarning("拿錯水果了！");
         target.handled = true;
         AddScore(-100);
         FalseAlarm++;
@@ -433,10 +446,12 @@ public class GameManager : MonoBehaviour
         FinishRun(target, 1, true);
         Destroy(target.gameObject);
         CheckRoundEnd();
+        //點錯了
     }
 
     public void Miss(Target target)
     {
+        ShowWarning("不在可拿取範圍！");
         target.handled = true;
         AddScore(-50);
         MissCount++;
@@ -447,9 +462,11 @@ public class GameManager : MonoBehaviour
         FinishRun(target, 2, false);
         Destroy(target.gameObject);
         CheckRoundEnd();
+        //這不是可點擊區域！
     }
     public void Miss_Overtime(Target target)
     {
+        //ShowWarning("不在可拿取範圍！");
         target.handled = true;
         AddScore(-50);
         MissCount++;
@@ -459,6 +476,7 @@ public class GameManager : MonoBehaviour
         FinishRun(target, 2, false);
         Destroy(target.gameObject);
         CheckRoundEnd();
+        //
     }
 
     public void AddScore(int amount)
@@ -924,9 +942,25 @@ public class GameManager : MonoBehaviour
         );
 
         replayButton.GetComponent<RectTransform>().anchoredPosition =
-        success? new Vector2(-160f, -200f) : new Vector2(0f, -200f);
+        success? new Vector2(-240f, -200f) : new Vector2(-120f, -200f);
 
         replayButton.GetComponent<Button>().onClick.AddListener(ReplayGame);
+
+        GameObject homeButton = CreateMenuButton(
+                "Home Button",
+                resultPanel.transform,
+                homeButtonSprite
+            );
+        homeButton.GetComponent<RectTransform>().anchoredPosition =
+            success
+                ? new Vector2(0f, -200f)
+                : new Vector2(120f, -200f);
+
+        homeButton.GetComponent<Button>()
+            .onClick
+
+            .AddListener(ReturnToMainMenu);
+
 
         if (success)
         {
@@ -1379,6 +1413,57 @@ public class GameManager : MonoBehaviour
 
         runRecords.Add(currentRun);
         currentRunFinished = true;
+    }
+
+    private void ShowWarning(string message)
+    {
+        if (warningText == null) return;
+
+        if (warningRoutine != null)
+            StopCoroutine(warningRoutine);
+
+        warningRoutine = StartCoroutine(ShowWarningRoutine(message));
+    }
+
+    private IEnumerator ShowWarningRoutine(string message)
+    {
+        warningText.text = message;
+        warningText.gameObject.SetActive(true);
+
+        yield return new WaitForSecondsRealtime(warningDuration);
+
+        warningText.gameObject.SetActive(false);
+    }
+
+
+    public void ReturnToMainMenu()
+    {
+        Time.timeScale = 1f;
+
+        if (resultPanel != null)
+        {
+            Destroy(resultPanel);
+            resultPanel = null;
+        }
+
+        if (spawner != null)
+        {
+            spawner.StopSpawnLoop();
+            spawner.ClearSpawnedTargets();
+            spawner.enabled = false;
+        }
+
+        ClearAllTargets();
+
+        SetHudVisible(false);
+        score = 0;
+        roundHits = 0;
+        remainingClicks = maxClicks;
+        currentHitsByFruit.Clear();
+        requiredHitsByFruit.Clear();
+        //DifficultyManager.Instance.ResetDifficulty();
+
+        ShowStartMenu();
     }
 
 

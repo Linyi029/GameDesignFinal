@@ -23,31 +23,6 @@ public class DifficultyConfig
 
     [Tooltip("本難度單關需要完成的成功點擊目標數。")]
     public int requiredHits;
-
-    [Tooltip("本難度的遊戲說明文字。")]
-    [TextArea(2, 4)]
-    public string introText;
-
-    // [Tooltip("Easy 目標篩選條件（屬性對）")]
-    // public PropertyFilter easyTargetFilter;
-
-    // [Tooltip("Easy 干擾篩選條件（屬性對）")]
-    // public PropertyFilter easyDistractionFilter;
-
-    // [Tooltip("Medium 目標篩選條件")]
-    // public PropertyFilter mediumTargetFilter;
-
-    // [Tooltip("Medium 干擾篩選條件")]
-    // public PropertyFilter mediumDistractionFilter;
-
-    // [Tooltip("Hard 目標篩選條件")]
-    // public PropertyFilter hardTargetFilter;
-
-    // [Tooltip("Hard 干擾篩選條件")]
-    // public PropertyFilter hardDistractionFilter;
-
-    // [Tooltip("Current mission hits")]
-    // private int currentMissionHits;
 }
 
 [System.Serializable]
@@ -188,7 +163,7 @@ public class DifficultyManager : MonoBehaviour
             targetFruitCount = 1,
             totalFruitTypesCount = 3,
             requiredHits = 5,
-            introText = "挑選出目標水果！\n出現的水果中只有 1 種是對的，其他都要避開。"
+            //introText = "挑選出目標水果！\n出現的水果中只有 1 種是對的，其他都要避開。"
         };
 
         difficultyConfigs[1] = new DifficultyConfig
@@ -197,7 +172,7 @@ public class DifficultyManager : MonoBehaviour
             targetFruitCount = 2,
             totalFruitTypesCount = 7,
             requiredHits = 10,
-            introText = "挑選出 2 種目標水果！\n有相似的水果和壞掉的版本會混淆你，要小心。"
+            //introText = "挑選出 2 種目標水果！\n有相似的水果和壞掉的版本會混淆你，要小心。"
         };
 
         difficultyConfigs[2] = new DifficultyConfig
@@ -206,7 +181,7 @@ public class DifficultyManager : MonoBehaviour
             targetFruitCount = 3,
             totalFruitTypesCount = 10,
             requiredHits = 15,
-            introText = "挑選出 3 種目標水果！\n相似水果、壞掉版本、甚至會有蒼蠅出現。集中注意力！"
+            //introText = "挑選出 3 種目標水果！\n相似水果、壞掉版本、甚至會有蒼蠅出現。集中注意力！"
         };
     }
 
@@ -342,95 +317,6 @@ public class DifficultyManager : MonoBehaviour
     }
 
 
-
-
-    // private FruitOption PickRandomFruit()
-    // {
-    //     if (allFruits == null || allFruits.Length == 0)
-    //         return null;
-
-    //     return allFruits[Random.Range(0, allFruits.Length)];
-    // }
-
-    // private FruitOption PickRandomFruit(PropertyFilter filter, List<string> excludeFruitNames)
-    // {
-    //     List<FruitOption> candidates = new List<FruitOption>();
-
-    //     foreach (FruitOption fruit in allFruits)
-    //     {
-    //         // 檢查是否在排除清單中
-    //         bool isExcluded = false;
-    //         foreach (string name in excludeFruitNames)
-    //         {
-    //             if (fruit.fruitName == name)
-    //             {
-    //                 isExcluded = true;
-    //                 break;
-    //             }
-    //         }
-
-    //         if (isExcluded)
-    //             continue;
-
-    //         // 如果有過濾器，檢查是否符合
-    //         if (filter != null && !filter.Matches(fruit))
-    //             continue;
-
-    //         candidates.Add(fruit);
-    //     }
-
-    //     if (candidates.Count == 0)
-    //         return null;
-
-    //     return candidates[Random.Range(0, candidates.Count)];
-    // }
-
-    // private List<FruitOption> PickRandomFruits(PropertyFilter filter, int count, List<string> excludeFruitNames)
-    // {
-    //     List<FruitOption> candidates = new List<FruitOption>();
-
-    //     foreach (FruitOption fruit in allFruits)
-    //     {
-    //         // 檢查是否在排除清單中
-    //         bool isExcluded = false;
-    //         foreach (string name in excludeFruitNames)
-    //         {
-    //             if (fruit.fruitName == name)
-    //             {
-    //                 isExcluded = true;
-    //                 break;
-    //             }
-    //         }
-
-    //         if (isExcluded)
-    //             continue;
-
-    //         // 如果有過濾器，檢查是否符合
-    //         if (filter != null && !filter.Matches(fruit))
-    //             continue;
-
-    //         candidates.Add(fruit);
-    //     }
-
-    //     List<FruitOption> picked = new List<FruitOption>();
-    //     count = Mathf.Min(count, candidates.Count);
-
-    //     List<int> indices = new List<int>();
-    //     for (int i = 0; i < candidates.Count; i++)
-    //     {
-    //         indices.Add(i);
-    //     }
-
-    //     for (int i = 0; i < count; i++)
-    //     {
-    //         int randomIndex = Random.Range(0, indices.Count);
-    //         picked.Add(candidates[indices[randomIndex]]);
-    //         indices.RemoveAt(randomIndex);
-    //     }
-
-    //     return picked;
-    // }
-
     public FruitOption GetFruitOption(string fruitName)
     {
         foreach (FruitOption fruit in allFruits)
@@ -444,17 +330,6 @@ public class DifficultyManager : MonoBehaviour
         return null;
     }
 
-    public string GetLevelIntroText(Difficulty difficulty)
-    {
-        DifficultyConfig config = GetDifficultyConfig(difficulty);
-        if (config != null)
-        {
-            return config.introText;
-        }
-
-        return "開始遊戲！";
-    }
-    
  
 
     /// <summary>

@@ -52,7 +52,7 @@ public class Target : MonoBehaviour
         {
             handled = true;
 
-            if (type == TargetType.Go)
+            if (type == TargetType.Go && !inZone)
             {
                 GameManager.Instance.Miss_Overtime(this);
             }
