@@ -64,22 +64,9 @@ public class Spawner : MonoBehaviour
 
     void Start()
     {
-        
-        // StartCoroutine(SpawnLoop());
-        //StartSpawnLoop();
+    
     }
-    // public void ClearSpawnedTargets()
-    // {
-    //     currentTargets.Clear();
-    // }
-    // public void StartSpawnLoop()
-    // {
-    //     isSpawning = true;
-
-    //     if (spawnRoutine == null)
-    //         spawnRoutine = StartCoroutine(SpawnLoop());
-    // }
-
+  
     public void StopSpawning()
     {
         isSpawning = false;
@@ -412,6 +399,17 @@ public class Spawner : MonoBehaviour
             spawnPos,
             Quaternion.identity
         );
+
+        Transform studentTransform = currentTarget.transform.Find("StudentCarry");
+        if (studentTransform != null)
+        {
+            Vector3 scale = studentTransform.localScale;
+            if (!spawnLeft)
+            {
+                scale.x *= -1;
+            }
+            studentTransform.localScale = scale;
+        }
         if (spawnedTargetsRoot != null)
             currentTarget.transform.SetParent(spawnedTargetsRoot, true);
 
